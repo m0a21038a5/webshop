@@ -12,8 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.example.service.CustomAuthenticationSuccessHandler;
 
-@Configuration // このクラスがSpringの設定クラスであることを示す
-@EnableWebSecurity // Spring Securityの機能を有効にする
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 	@Autowired
 	CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
@@ -43,7 +43,8 @@ public class SecurityConfig {
     		    .requestMatchers("/speech-to-text").permitAll()  // 音声認識エンドポイントを認証なしにする
     			.requestMatchers("/api/speech/recognize").permitAll()
     		    .requestMatchers("/wav/**").permitAll() 		    
-    		    .requestMatchers("/ShopLocation").permitAll() 		    
+    		    .requestMatchers("/ShopLocation").permitAll() 	
+    		    .requestMatchers("/").permitAll()
     			.anyRequest().authenticated();
     	}).logout(logout->logout.logoutUrl("/logout")
     	  .invalidateHttpSession(true)
