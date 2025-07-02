@@ -5,6 +5,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -21,12 +23,11 @@ import com.example.service.ProductService;
 import com.example.service.UserService;
 import com.example.service.WMProService;
 import com.example.service.WMUserService;
-
-import jakarta.servlet.http.HttpSession;
  
 @Controller
 public class WakamatsuController {
- 
+	
+	
 	private final UserService userService;
 	private final ProductService productService;
 	private final WMProService wm;
@@ -107,12 +108,13 @@ public class WakamatsuController {
  
 		return "redirect:/products";
 	}
- 
+	
+	//お問い合わせ
 	@GetMapping("/inquiry")
 	public String inquiry() {
 		return "inquiry";
 	}
- 
+	
 	@PostMapping("/inquiry")
 	public String inquiryform(@RequestParam("subject") String subject, @RequestParam("content") String content) {
  
@@ -121,7 +123,8 @@ public class WakamatsuController {
 		return "redirect:/inquiry";
  
 	}
- 
+	
+	//Q&A
 	@GetMapping("/qa")
 	public String qa(Model model) {
 		List<Inquiry> list = new ArrayList<>();
@@ -131,7 +134,8 @@ public class WakamatsuController {
  
 		return "QA";
 	}
- 
+	
+	//お問い合わせの返答
 	@GetMapping("/answer")
 	public String answer(Model model) {
 		List<Inquiry> list = new ArrayList<>();
@@ -142,7 +146,7 @@ public class WakamatsuController {
  
 		return "Answer";
 	}
- 
+	
 	@PostMapping("/answer")
 	public String answerform(@RequestParam("answercontent") String answercontent,
 			@RequestParam("inquiryid") int inquiryid) {
@@ -159,7 +163,8 @@ public class WakamatsuController {
 		return "redirect:/answercomplete";
  
 	}
- 
+	
+	//お問い合わせ返答完了ページ
 	@GetMapping("/answercomplete")
 	public String answercomplete() {
 		return "AnswerComplete";

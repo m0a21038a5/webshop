@@ -15,24 +15,32 @@ import com.example.service.CustomAuthenticationSuccessHandler;
 @Configuration // このクラスがSpringの設定クラスであることを示す
 @EnableWebSecurity // Spring Securityの機能を有効にする
 public class SecurityConfig {
-
+	
+	//認証後に遷移するページ設定
 	@Autowired
 	CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
 
 	@Bean // Springコンテナにこのメソッドの戻り値をBeanとして登録
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
+		
+		//ログイン
 		http.formLogin(login->{
+		//ログインページは誰でもアクセスできる
     		login.loginPage("/login").permitAll()
+    		//ログイン後の遷移先の設定
     		.successHandler(customAuthenticationSuccessHandler)
+    		//ユーザー名・パスワード
     		.usernameParameter("username")
     		.passwordParameter("password")
+    		//ログイン失敗時の遷移先
     		.failureUrl("/failure").permitAll();
     	})
     	.authorizeHttpRequests(auth->{
     		auth.requestMatchers("/makehash").permitAll()	
+    			//管理者ページ
     			.requestMatchers("/addproduct","/addproductInsert","/addsyouhin","/delete2","/admin/**","/Stock","/timesale","/answer","/answercomplete","/UserInfo").hasRole("ADMIN")//追加
+    			//商品ページやホームページ、ユーザー登録ページは誰でもアクセス可
     			.requestMatchers("/products/**").permitAll()
     			.requestMatchers("/user/**").permitAll()
     			.requestMatchers("/register").permitAll()
@@ -44,11 +52,16 @@ public class SecurityConfig {
     		    .requestMatchers("/speech-to-text").permitAll()  // 音声認識エンドポイントを認証なしにする
     			.requestMatchers("/api/speech/recognize").permitAll()
     		    .requestMatchers("/wav/**").permitAll() 		    
-    		    .requestMatchers("/ShopLocation").permitAll() 		    
+    		    .requestMatchers("/ShopLocation").permitAll() 	
+    		    //これ以外のページは認証後にアクサス可
     			.anyRequest().authenticated();
+    	//ログアウト
     	}).logout(logout->logout.logoutUrl("/logout")
+    	  //セッションを切る
     	  .invalidateHttpSession(true)
+    	  //認証情報を初期化
     	  .clearAuthentication(true)
+    	  //ログアウト後の遷移先
     	  .logoutSuccessUrl("/login"));
 		
 		http.csrf(AbstractHttpConfigurer::disable);//追加

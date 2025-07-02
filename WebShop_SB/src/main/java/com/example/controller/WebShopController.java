@@ -58,7 +58,8 @@ public class WebShopController {
 //				.setHeaderProvider(FixedHeaderProvider.create("x-goog-user-project", quotaProjectId)).build();
 //		this.speechClient = SpeechClient.create(speechSettings);
 	}
-
+	
+	//ホームページ
 	@GetMapping("/homepage")
 	public String homepage(Model model) {
 		List<Product> productList = productService.findViewAll();
