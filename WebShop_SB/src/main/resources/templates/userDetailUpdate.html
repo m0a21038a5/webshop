@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザー情報更新</title>
+<link rel="stylesheet" href="/css/homePage.css">
+</head>
+<body>
+	<header class="header">
+		<input type="checkbox" id="drawer-toggle" name="drawer-toggle"/>
+		<label for="drawer-toggle" id="drawer-toggle-label"></label>
+		<nav id="drawer">
+		<ul>
+			<li><a th:href="@{/products}">作品一覧</a></li>
+			<li><a th:href="@{/buylog}">購入履歴</a></li>
+			<li><a th:href="@{/viewLog}">閲覧履歴</a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a></a></li>
+			<li><a th:href="@{/settings}">ユーザー設定</a></li>
+			<li><a th:href="@{/email-settings}">メール設定</a></li>
+			<li><a th:href="@{/userUpdate}">パスワード変更</a></li>
+			<li>
+				<div th:if="${loginUser != 'anonymousUser'}">
+					<form th:action="@{/logout}" method="post">
+					<button class="b_color4">ログアウト</button>
+					</form>
+				</div>
+			</li>
+		</ul>
+		</nav>
+
+		<!-- 中央：書店名 -->
+		<div class="header-center">
+			<a th:href="@{/homepage}">
+				<div class="logo">品川書店</div>
+			</a>
+		</div>
+
+		<!-- 右：各種ボタン -->
+		<div class="list-right">
+			<div th:if="${loginUser != 'anonymousUser'}">
+				<a th:href="@{/inquiry}">お問い合わせ</a>&nbsp;&nbsp;<a th:href="@{/qa}">Q＆A</a>&nbsp;&nbsp;<a th:href="@{/cart}">カート</a>
+			</div>
+			<div th:unless="${loginUser != 'anonymousUser'}">
+				<a th:href="@{/inquiry}">お問い合わせ</a>&nbsp;&nbsp;<a th:href="@{/login}">ログイン</a>&nbsp;&nbsp;<a th:href="@{/qa}">Q＆A</a>&nbsp;&nbsp;<a th:href="@{/cart}">カート</a>
+			</div>
+			
+		</div>
+		
+	
+	</header>
+	<h1>ユーザー情報更新</h1>
+	<form th:action="@{/settings}" method="post" class="form">
+		<label th:text="'ユーザ名：'+${username}"></label>
+		<input type="hidden" name="username" th:value="${username}">
+		<br>
+		<label for="address">住所:</label>
+		<input type="text" id="address" name="address" th:value="${address}" required>
+		<br>
+		<label for="age">年齢:</label>
+		<input type="number" id="age" name="age" th:value="${age}"required>
+		<button type="submit">更新</button>
+	</form>
+	<p th:if="${error}" style="color:red;" th:text="${error}"></p>
+	<a th:href="@{/homepage}">ホームページに戻る</a>
+</body>
+</html>

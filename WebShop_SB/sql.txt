@@ -1,0 +1,47 @@
+-- データベースの作成 (必要に応じて名前を変更)
+CREATE DATABASE webshop;
+
+-- データベースの使用
+USE webshop;
+
+DROP TABLE users;
+DROP TABLE products;
+
+-- ユーザーテーブルの作成
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+-- 商品テーブルの作成
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price INT NOT NULL,
+    stock INT NOT NULL DEFAULT 0
+);
+
+-- サンプルデータの挿入 (必要に応じて変更)
+INSERT INTO users (username, password) VALUES ('testuser', 'password123');
+INSERT INTO products (name, price, stock) VALUES ('商品A', 1000, 100);
+INSERT INTO products (name, price, stock) VALUES ('商品B', 2000, 200);
+INSERT INTO products (name, price, stock) VALUES ('商品C', 3000, 300);
+
+
+
+
+-- 購入履歴テーブルの作成
+create table buylog(
+	id int auto_increment primary key,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	username varchar(255),
+	productid int,
+	price int,
+	quantity int
+);
+
+
+
+
+	

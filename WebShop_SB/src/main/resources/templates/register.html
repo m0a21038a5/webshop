@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="/css/style.css">
+	<title>ユーザー登録</title>
+</head>
+
+<body>
+	<header class="header">
+	<div class="header-center">
+			<a href="/homepage">
+				<div class="logo">品川書店</div>
+			</a>
+		</di>
+	</header>
+	
+	<h1>新規ユーザー登録</h1>
+	<form th:action="@{/register}" method="post" class="form">
+		<label for="username">ユーザー名:</label>
+		<input type="text" id="username" name="username" required>
+
+		<label for="password">パスワード:</label>
+		<input type="password" id="password" name="password" required>
+		
+		<label for="mailaddress">メールアドレス:</label>:</label>
+		<input type="email" id="mailaddress" name="mailaddress" required>
+		
+		<label for="address">住所:</label>
+		<input type="text" id="address" name="address" required>
+		
+		<label for="age">年齢:</label>
+		<input type="number" id="age" name="age" min="1" required>
+
+		<button type="submit">登録</button>
+	</form>
+	<p th:if="${error}" style="color:red;" th:text="${error}"></p>
+	<a th:href="@{/login}">ログインページに戻る</a>
+</body>
+
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>商品リスト</title>
+	<script>
+		function toggleEditBox(id, field) {
+			const editBoxId = field + '-edit-' + id;
+			const editBox = document.getElementById(editBoxId);
+			if (editBox) {
+				editBox.style.display = (editBox.style.display === 'none') ? 'block' : 'none';
+			}
+			const addfieldId = 'addfield' + id;
+			const deletefieldId = 'deletefield' + id;
+			document.getElementById(addfieldId).style.display="none";
+			document.getElementById(deletefieldId).style.display="none";	
+		}
+		
+		 function myfunc(id) {
+				 const formId = 'Recommend' + id;
+				 document.getElementById(formId).submit();
+    	 }
+    	 
+    	 function funcView(id){
+			 const formId = "View" + id;
+			  document.getElementById(formId).submit();
+		 }
+    	  	
+	</script>
+	<link rel="stylesheet" type="text/css" href="/css/homePage.css">
+	
+	<script type="text/javascript">
+			
+			function changeTerm(id) {
+				const editId = 'genre' + id;
+				const addId = 'add' + id;
+				const deleteId = 'delete' + id;
+				const addfieldId = 'addfield' + id;
+				const deletefieldId = 'deletefield' + id;
+				let genreid = document.getElementById(editId).value;
+				
+				if (genreid==addId) {
+					document.getElementById(addfieldId).style.display="";
+					document.getElementById(deletefieldId).style.display="none";
+				}else if(genreid==deleteId){
+					document.getElementById(deletefieldId).style.display="";
+					document.getElementById(addfieldId).style.display="none";
+				} else {
+					document.getElementById(addfieldId).style.display="none";
+					document.getElementById(deletefieldId).style.display="none";				}
+			}
+			
+		
+			
+	</script>
+	
+	
+</head>
+<style>
+	.cart_color {
+		background: #f2f2f2;
+		border-spacing: 0;
+
+	}
+
+	.cart_color th,
+	.cart_color td {
+		border-bottom: 2px solid #000;
+		padding: 10px;
+	}
+
+	.right {
+		text-align: right;
+		background-color: white;
+		border: none;
+		cursor: pointer;
+	}
+
+	.center {
+		text-align: center;
+	}
+
+	.left {
+		text-align: left;
+	}
+
+	button {
+		border: none;
+		cursor: pointer;
+		white-space: nowrap; 
+  		overflow: hidden; 
+  		text-overflow: ellipsis; 
+  		width: 100px; 
+	}
+
+	.b_color {
+		display: inline-block;
+		/* ボタンを横並びにする */
+		border: none;
+		/* 枠線をなくす */
+		border-radius: 5px;
+		/* 角丸をつける */
+		padding: 10px 15px;
+		/* ボタンの内側の余白 */
+		margin: 5px;
+		/* ボタン同士の余白 */
+		background-color: blue;
+		/* ボタンの背景色 */
+		color: white;
+		/* ボタンの文字色 */
+		text-align: center;
+		/* ボタンのテキストを中央揃えにする */
+		text-decoration: none;
+		/* テキストに下線をつけない */
+		font-size: 15px;
+		/* テキストのフォントサイズ */
+		cursor: pointer;
+		/* マウスポインタを変更する */
+	}
+
+	.b_color2 {
+		display: inline-block;
+		/* ボタンを横並びにする */
+		border: none;
+		/* 枠線をなくす */
+		border-radius: 5px;
+		/* 角丸をつける */
+		padding: 10px 15px;
+		/* ボタンの内側の余白 */
+		margin: 5px;
+		/* ボタン同士の余白 */
+		background-color: red;
+		/* ボタンの背景色 */
+		color: white;
+		/* ボタンの文字色 */
+		text-align: center;
+		/* ボタンのテキストを中央揃えにする */
+		text-decoration: none;
+		/* テキストに下線をつけない */
+		font-size: 15px;
+		/* テキストのフォントサイズ */
+		cursor: pointer;
+		/* マウスポインタを変更する */
+	}
+
+	.b_color3 {
+		display: inline-block;
+		/* ボタンを横並びにする */
+		border: none;
+		/* 枠線をなくす */
+		border-radius: 5px;
+		/* 角丸をつける */
+		padding: 10px 15px;
+		/* ボタンの内側の余白 */
+		margin: 5px;
+		/* ボタン同士の余白 */
+		background-color: green;
+		/* ボタンの背景色 */
+		color: white;
+		/* ボタンの文字色 */
+		text-align: center;
+		/* ボタンのテキストを中央揃えにする */
+		text-decoration: none;
+		/* テキストに下線をつけない */
+		font-size: 15px;
+		/* テキストのフォントサイズ */
+		cursor: pointer;
+		/* マウスポインタを変更する */
+	}
+
+	.b_color4 {
+		display: inline-block;
+		/* ボタンを横並びにする */
+		border: none;
+		/* 枠線をなくす */
+		border-radius: 5px;
+		/* 角丸をつける */
+		padding: 10px 15px;
+		/* ボタンの内側の余白 */
+		margin: 5px;
+		/* ボタン同士の余白 */
+		background-color: #2f2f2f;
+		/* ボタンの背景色 */
+		color: white;
+		/* ボタンの文字色 */
+		text-align: left;
+		/* ボタンのテキストを中央揃えにする */
+		text-decoration: none;
+		/* テキストに下線をつけない */
+		font-size: 15px;
+		/* テキストのフォントサイズ */
+		cursor: pointer;
+		/* マウスポインタを変更する */
+	}
+
+	.b_color5 {
+		display: inline-block;
+		/* ボタンを横並びにする */
+		border: none;
+		/* 枠線をなくす */
+		border-radius: 5px;
+		/* 角丸をつける */
+		padding: 8px 13px;
+		/* ボタンの内側の余白 */
+		margin: 5px;
+		/* ボタン同士の余白 */
+		background-color: blue;
+		/* ボタンの背景色 */
+		color: white;
+		/* ボタンの文字色 */
+		text-align: left;
+		/* ボタンのテキストを中央揃えにする */
+		text-decoration: none;
+		/* テキストに下線をつけない */
+		font-size: 12px;
+		/* テキストのフォントサイズ */
+		cursor: pointer;
+		/* マウスポインタを変更する */
+	}
+
+
+	.box {
+  		width: 100%;                /* 横幅を200pxに指定 */
+  		height: 500px;               /* 横幅を200pxに指定 */
+  		/*border: 1px solid #000; */     /* わかりやすくボーダーを引く */
+  		overflow-y: scroll;          /* 縦方向にスクロール可能にする */
+	}
+	
+
+
+
+	* {
+		-webkit-box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		-o-box-sizing: border-box;
+		box-sizing: border-box;
+		/* adds animation for all transitions */
+		-webkit-transition: .25s ease-in-out;
+		-moz-transition: .25s ease-in-out;
+		-o-transition: .25s ease-in-out;
+		transition: .25s ease-in-out;
+		margin: 0;
+		padding: 0;
+		-webkit-text-size-adjust: none;
+	}
+
+	#drawer-toggle {
+		position: absolute;
+		opacity: 0;
+	}
+
+	#drawer-toggle-label {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		left: 0px;
+		height: 50px;
+		width: 50px;
+		display: block;
+		position: fixed;
+		background: rgba(255, 255, 255, .0);
+		z-index: 1;
+	}
+
+	#drawer-toggle-label:before {
+		content: '';
+		display: block;
+		position: absolute;
+		height: 2px;
+		width: 24px;
+		background: #8d8d8d;
+		left: 13px;
+		top: 18px;
+		box-shadow: 0 6px 0 #8d8d8d, 0 12px 0 #8d8d8d;
+	}
+
+	header {
+		width: 100%;
+		position: fixed;
+		left: 0px;
+		background: #efefef;
+		padding: 10px 10px 10px 50px;
+		font-size: 30px;
+		line-height: 30px;
+		z-index: 0;
+	}
+
+	#drawer {
+		position: fixed;
+		top: 0;
+		left: -300px;
+		height: 100%;
+		width: 300px;
+		background: #2f2f2f;
+		overflow-x: hidden;
+		overflow-y: scroll;
+		padding: 20px;
+		-webkit-overflow-scrolling: touch;
+	}
+
+
+	#page-content {
+		margin-left: 0px;
+		margin-top: 50px;
+		width: 100%;
+		height: calc(100% - 50px);
+		overflow-x: hidden;
+		overflow-y: scroll;
+		-webkit-overflow-scrolling: touch;
+		padding: 20px;
+	}
+
+	#drawer-toggle:checked~#drawer-toggle-label {
+		height: 100%;
+		width: calc(100% - 300px);
+		background: rgba(255, 255, 255, .8);
+	}
+
+	#drawer-toggle:checked~#drawer-toggle-label,
+	#drawer-toggle:checked~header {
+		left: 300px;
+	}
+
+	#drawer-toggle:checked~#drawer {
+		left: 0px;
+	}
+
+	#drawer-toggle:checked~#page-content {
+		margin-left: 300px;
+	}
+
+	#drawer ul {
+		list-style-type: none;
+	}
+
+	#drawer ul a {
+		display: block;
+		padding: 10px;
+		color: #c7c7c7;
+		text-decoration: none;
+	}
+
+	#drawer ul a:hover {
+		color: white;
+	}
+
+	@media all and (max-width:350px) {
+
+		#drawer-toggle:checked~#drawer-toggle-label {
+			height: 100%;
+			width: 50px;
+		}
+
+		#drawer-toggle:checked~#drawer-toggle-label,
+		#drawer-toggle:checked~header {
+			left: calc(100% - 50px);
+		}
+
+		#drawer-toggle:checked~#drawer {
+			width: calc(100% - 50px);
+			padding: 20px;
+		}
+
+		#drawer-toggle:checked~#page-content {
+			margin-left: calc(100% - 50px);
+		}
+	}
+
+	.header_style {
+		background-color: rgb(0, 0, 160);
+		font-size: 40px;
+		text-align: center;
+	}
+
+	.text {
+		color: white;
+	}
+
+	.header_style {
+		background-color: rgb(0, 0, 160);
+		font-size: 40px;
+		text-align: center;
+	}
+
+	a {
+		text-decoration: none;
+	}
+	
+	.td{
+		font-size: 40px;
+	}
+	
+	.table_style {
+  		background: #f2f2f2;
+		border-spacing: 0;
+		width: 100%;
+		height: 100%;
+  		border-collapse: collapse;
+	}
+	
+	.table_style th, 
+	.table_style td {
+		border-bottom: 2px solid #000;
+		padding: 10px;
+	}
+	
+	
+</style>
+
+<body>
+
+
+	<script>
+		var scrollPosition;
+		var STORAGE_KEY = "scrollY";
+
+
+		function saveScrollPosition() {
+			scrollPosition = window.pageYOffset;
+			localStorage.setItem(STORAGE_KEY, scrollPosition);
+		}
+
+		window.addEventListener("load", function () {
+			scrollPosition = localStorage.getItem(STORAGE_KEY);
+			if (scrollPosition !== null) {
+				scrollTo(0, scrollPosition);
+			}
+			window.addEventListener("scroll", saveScrollPosition, false);
+		});
+	</script>
+
+
+	<h1 style="text-align: center">商品を追加または変更、削除してください</h1>
+	
+	<div class="center-wrapper">
+	<div style="text-align: center">
+	<form th:action="searchStock" method="post">
+		ID
+		<input type="number" name = "id" th:value="${searchId}" list="idLog"><br>
+		<datalist id = "idLog">
+		<option th:each="item : ${idList}" th:value="${item.id}" th:text="${item.id}"></option>
+		</datalist>
+		タイトル
+		<input type="text" name = "title" th:value="${searchTitle}" list="titleLog"><br>
+		<datalist id="titleLog">
+		<option th:each="item : ${titleList}" th:value="${item.title}" th:text="${item.title}"></option>
+		</datalist>
+		著者
+		<input type="text" name = "author" th:value="${searchAuthor}" list="authorLog"><br>
+		<datalist id="authorLog">
+		<option th:each="authorItem : ${authorList}" th:value="${authorItem.author}" th:text="${authorItem.author}"></option>
+		</datalist>
+		ジャンル<br>
+		<select name="genre">
+			<option th:each="item : ${genrelist}" th:value="${item.genrename}" th:text="${item.genrename}"></option>
+		</select><br>
+		<button type="submit">検索</button>
+	</form>	
+	</div>
+	</div>
+	<a th:href="@{/admin}">管理者ホームページ</a>
+	
+	<table class="table_style">
+		<tr style="text-align:left">
+			<th width ="50">ID</th>
+			<th width="100">名前</th>
+			<th width = "100">著者</th>
+			<th width = "100">発売日</th>
+			<th width = "100">在庫数</th>
+			<th width = "100">値段</th>
+			<th width = "100">販売数</th>
+			<th width = "120">ジャンル</th>
+			<th width = "100">画像リンク</th>
+			<th width = "75">一押し</th>
+			<th width = "100">説明</th>
+			<th width = "75">公開</th>
+			<th width = "100">アクション</th>
+		</tr>
+	</table>
+
+	
+	
+		
+	<table class="table_style">
+		<tr th:each="p : ${list}">
+			<td width = "50" th:text="${p.id}"></td>
+			<td width = "80">
+				<button type="button" th:id="'title-btn-' + ${p.id}" th:text="${p.title}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'title\')'">
+				</button>
+
+				<div th:id="'title-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="text" name="title" th:value="${p.title}" required/>
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "100">
+				<button type="button" th:id="'author-btn-' + ${p.id}" th:text="${p.author}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'author\')'">
+				</button>
+
+				<div th:id="'author-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="text" name="author" th:value="${p.author}" required/>
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "80">
+				<button type="button" th:id="'release_day-btn-' + ${p.id}" th:text="${p.release_day}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'release_day\')'">
+				</button>
+
+				<div th:id="'release_day-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="text" name="release_day" th:value="${p.release_day}" required/>
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "100">
+				<button type="button" th:id="'stock-btn-' + ${p.id}" th:text="${p.stock}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'stock\')'">
+				</button>
+
+				<div th:id="'stock-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="number" name="stock" th:value="${p.stock}" required min="0"/>
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "100">
+				<button type="button" th:id="'price-btn-' + ${p.id}" th:text="${p.price}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'price\')'">
+				</button>
+
+				<div th:id="'price-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="number" name="price" th:value="${p.price}" required min="0"/>
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "80" th:text="${p.sales}"></td>
+			<td width = "100">
+				<button type="button" th:id="'genre-btn-' + ${p.id}" th:text="${p.genre}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'genre\')'">
+				</button>
+		
+				<div th:id="'genre-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<select name="genre" th:id = "'genre' + ${p.id}" th:onchange="'changeTerm(' + ${p.id} + ')'">
+							<option value="---">---</option>
+							<option th:each="item : ${genrelist}" th:value="${item.genrename}" th:text="${item.genrename}"></option>
+							<option th:value="'add' + ${p.id}">追加</option>
+							<option th:value="'delete' + ${p.id}">削除</option>
+						</select>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+					
+					<div th:id="'addfield' + ${p.id}">
+						<form th:action="addGenre" method="post">
+							<input type="hidden" name="id" th:value="${p.id}" />
+							<input type="text" name ="NewGenre"/>
+							<button class="b_color5" type="submit">保存</button>
+						</form>
+					</div>
+					
+					<div th:id="'deletefield' + ${p.id}">
+						<form th:action="deleteGenre" method="post">
+							<input type="hidden" name="id" th:value="${p.id}" />
+							<select name="genre">
+							<option th:each="item : ${genrelist}" th:value="${item.genrename}" th:text="${item.genrename}"></option>
+						</select>
+							<button class="b_color5" type="submit">保存</button>
+						</form>
+					</div>
+					
+				</div>
+			</td>
+			<td width = "80">
+				<button type="button" th:id="'imgLink-btn-' + ${p.id}" th:text="${p.imgLink}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'imgLink\')'">
+				</button>
+
+				<div th:id="'imgLink-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}"/>
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="text" name="imgLink" th:value="${p.imgLink}" required/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="hidden" name="notice" th:value="${p.notice}"/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "80">
+					<form th:action="ChangeRecommand" method="post" th:id = "'Recommend' + ${p.id}">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<div th:if="${p.recommand}">
+							<input type="checkbox" name="recommand" checked th:onchange="'myfunc(' + ${p.id} + ')'"/>
+						</div>
+						<div th:unless="${p.recommand}">
+							<input type="checkbox" name="recommand" th:onchange="'myfunc(' + ${p.id} + ')'"/>
+						</div>
+					</form>
+			</td>
+			<td width = "80">
+				<button type="button" th:id="'notice-btn-' + ${p.id}" th:text="${p.notice}"
+					th:onclick="'toggleEditBox(' + ${p.id} + ', \'notice\')'">
+				</button>
+
+				<div th:id="'notice-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
+					<form th:action="addProduct" method="post">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="release_day" th:value="${p.release_day}" />
+						<input type="hidden" name="stock" th:value="${p.stock}" />
+						<input type="hidden" name="quantity" th:value="${p.quantity}" />
+						<input type="hidden" name="price" th:value="${p.price}" />
+						<input type="hidden" name="sales" th:value="${p.sales}">
+						<input type="hidden" name="genre" th:value="${p.genre}"/>
+						<input type="hidden" name="imgLink" th:value="${p.imgLink}"/>
+						<input type="hidden" name="recommand" th:value="${p.recommand}"/>
+						<input type="text" name="notice" th:value="${p.notice}" size="50"required/>
+						<input type="hidden" name="view" th:value="${p.view}"/>
+						<button class="b_color5" type="submit">保存</button>
+					</form>
+				</div>
+			</td>
+			<td width = "70">
+					<form th:action="ChangeView" method="post" th:id="'View' + ${p.id}">
+						<input type="hidden" name="id" th:value="${p.id}" />
+						<div th:if="${p.view}">
+							<input type="checkbox" name="view" th:value="${p.view}" checked th:onchange="'funcView(' + ${p.id} + ')'"/>
+						</div>
+						<div th:unless="${p.view}">
+							<input type="checkbox" name="view" th:value="${p.view}" th:onchange="'funcView(' + ${p.id} + ')'"/>
+						</div>
+					</form>
+			</td>
+			<td width = "80">
+				<form th:action="delete2" method="post">
+					<input type="hidden" name="id" th:value="${p.id}">
+					<button class="b_color3">削除</button>
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			
+			
+			
+			<td>
+				<form th:action="addsyouhin" method="post">
+					<button  type="submit">商品追加</button>
+				</form>
+			</td>
+		</tr>
+	</table>
+
+</body>
+
+</html>
