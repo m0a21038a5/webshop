@@ -3,6 +3,7 @@ package com.example.repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import com.example.model.genre;
 
 
 @Repository
-public class ProductRepository {
+public class ProductRepository{
 	private final JdbcTemplate jdbcTemplate;
 
 	public ProductRepository(JdbcTemplate jdbcTemplate) {
@@ -65,22 +66,26 @@ public class ProductRepository {
 		return list.isEmpty() ? null : list.get(0);
 	}
 
-	public List<Product> findByTitle(String title) {
-	    String query = "SELECT * FROM product WHERE title LIKE ?";
-	    System.out.println("Executing query: " + query + " with title: " + title);
-	    return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), "%" + title + "%");
-	}
-
-	public List<Product> findByAuthor(String author) {
-	    String query = "SELECT * FROM product WHERE author LIKE ?";
-	    System.out.println("Executing query: " + query + " with author: " + author);
-	    return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), "%" + author + "%");
+	public void sortProductList(List<Product> products, String sortrule) {
+	    if ("recommendation".equals(sortrule)) {
+	    	products.sort(Comparator.comparing(Product::getSales).reversed());
+	    } else if ("favorite".equals(sortrule)) {
+	        products.sort(Comparator.comparing(Product::getSales));
+	    } else {
+	        products.sort(Comparator.comparing(Product::getId));
+	    }
 	}
 	
-	public List<Product> findByGenre(String genre) {
-	    String query = "SELECT * FROM product WHERE genre LIKE ?";
-	    System.out.println("Executing query: " + query + " with genre: " + genre);
-	    return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), "%" + genre + "%");
+	public List<Product> searchByKeyword(String keyword) {
+	    String sql = "SELECT * FROM product WHERE title LIKE ? OR author LIKE ? OR genre LIKE ?";
+	    String likeKeyword = "%" + keyword + "%";
+	    
+	    if(keyword != null && !keyword.isBlank() && !keyword.isEmpty()) {
+	    	return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Product.class),
+                    likeKeyword, likeKeyword, likeKeyword);
+	    }
+	    
+	    return findViewAll();
 	}
 	
 	public int update(Product product) {

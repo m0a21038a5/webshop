@@ -32,18 +32,14 @@ public class ProductService {
 		return productRepository.findById(id);
 	}
 
-	public List<Product> findByTitle(String title) {
-		return productRepository.findByTitle(title);
-	}
-
-	public List<Product> findByAuthor(String author) {
-		return productRepository.findByAuthor(author);
+	public List<Product> searchByKeyword(String keyword) {
+		return productRepository.searchByKeyword(keyword);
 	}
 	
-	public List<Product> findByGenre(String genre){
-		return productRepository.findByGenre(genre);
+	public void sortProductList(List<Product> products, String rank) {
+	   productRepository.sortProductList(products,rank);
 	}
-
+	
 	public int update(List<Product> list) {
 		int result = 0;
 		int count = 0;
@@ -190,8 +186,8 @@ public class ProductService {
 	}
 
 	//検索履歴追加
-	public void saveSearchLog(SearchLog searchlog) {
-		productRepository.saveSearchLog(searchlog);
+	public void saveSearchLog(SearchLog searchLog) {
+		productRepository.saveSearchLog(searchLog);
 	}
 
 	public List<SearchLog> findSearchIdLog(String username, String place) {

@@ -16,7 +16,7 @@ public class Product {
 	private boolean recommand;
 	private String notice;
 	private boolean view;
-	private boolean fabolit;
+	private boolean favorite;
 	private LocalDate releaseDay;
 	private int rank;
 
@@ -135,12 +135,12 @@ public class Product {
 		this.notice = notice;
 	}
 
-	public boolean getFabolit() {
-		return fabolit; // fabolitの値を返す
+	public boolean getFavorite() {
+		return favorite; // favoriteの値を返す
 	}
 
-	public void setFabolit(boolean fabolit) {
-		this.fabolit = fabolit;
+	public void setFavorite(boolean favorite) {
+		this.favorite = favorite;
 	}
 
 	public LocalDate getReleaseDay() {
