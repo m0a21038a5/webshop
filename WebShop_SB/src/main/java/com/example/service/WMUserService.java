@@ -20,8 +20,8 @@ public class WMUserService {
 	public void updateInquiry() {
 	}
 
-	public void insertInquiry(String subject,String content) {
-		wm.insertInquiry(subject,content);
+	public void insertInquiry(String subject, String content) {
+		wm.insertInquiry(subject, content);
 	}
 
 	public void updateInquiryAnswerd(Inquiry inquiry) {
@@ -29,15 +29,15 @@ public class WMUserService {
 	}
 
 	public List<Inquiry> selectAnsweredInquiry() {
-		
+
 		return wm.selectAnsweredInquiry();
 	}
 
 	public List<Inquiry> selectNotAnsweredInquiry() {
 		return wm.selectNotAnsweredInquiry();
 	}
-	
-	public List<User> findByAllUsers(){
+
+	public List<User> findByAllUsers() {
 		return wm.findByAllUsers();
 	}
 

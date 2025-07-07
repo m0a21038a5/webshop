@@ -2,7 +2,6 @@ package com.example.repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -26,15 +25,10 @@ import com.example.model.genre;
 @Repository
 public class ProductRepository{
 	private final JdbcTemplate jdbcTemplate;
+	final Logger logger = LoggerFactory.getLogger(Product.class);
 
 	public ProductRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
-		final Logger logger = LoggerFactory.getLogger(Product.class);
-	}
-
-	private List<String> normalizeSearch(String search) {
-	    // 空白や特殊文字を取り除き、各文字をリストに格納
-	    return Arrays.asList(search.replaceAll("[^\\p{L}\\p{N}]", "").split(""));
 	}
 	
 	//公開済み商品取得
@@ -43,7 +37,7 @@ public class ProductRepository{
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class));
 	}
 	
-	//イチオシ商品
+	//イチオシ商品取得
 	public List<Product> findRecommand(){
 		String query = "SELECT * FROM product where recommand = true";
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class));
@@ -54,18 +48,21 @@ public class ProductRepository{
 		String query = "SELECT * FROM product WHERE view = true ORDER BY sales DESC LIMIT 10;";
 		return jdbcTemplate.query(query,new BeanPropertyRowMapper<>(Product.class));
 	}
-
+	
+	//全商品取得
 	public List<Product> findAll() {
 		String query = "SELECT * FROM product";
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class));
 	}
-
+	
+	//id検索
 	public Product findById(int id) {
 		String query = "SELECT * FROM product WHERE id = ?";
 		List<Product> list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), id);
 		return list.isEmpty() ? null : list.get(0);
 	}
-
+	
+	//ソート
 	public void sortProductList(List<Product> products, String sortrule) {
 	    if ("recommendation".equals(sortrule)) {
 	    	products.sort(Comparator.comparing(Product::getSales).reversed());
@@ -76,6 +73,7 @@ public class ProductRepository{
 	    }
 	}
 	
+	//ユーザーページ検索
 	public List<Product> searchByKeyword(String keyword) {
 	    String sql = "SELECT * FROM product WHERE title LIKE ? OR author LIKE ? OR genre LIKE ?";
 	    String likeKeyword = "%" + keyword + "%";
@@ -88,9 +86,9 @@ public class ProductRepository{
 	    return findViewAll();
 	}
 	
+	//購入処理
 	public int update(Product product) {
 		int stock = 0;
-		int quantity = 0;
 		int sales = 0;
 		String query = "SELECT * FROM product WHERE id = ?";
 		List<Product> list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), product.getId());
@@ -104,30 +102,35 @@ public class ProductRepository{
 		String update = "UPDATE product SET stock = ?, sales = ? WHERE id = ?";
 		return jdbcTemplate.update(update, stock, sales, product.getId());
 	}
-
+	
+	//商品追加
 	public void insert(Product product) {
 		String query = "insert into product(title,author,release_day,price,stock,quantity,genre,imgLink,notice) values(?,?,?,?,?,?,?,?,?)";
 		jdbcTemplate.update(query, product.getTitle(), product.getAuthor(), product.getRelease_day(),
 				product.getPrice(), product.getStock(), 0, product.getGenre(), product.getImgLink(),product.getNotice());
 	}
-
+	
+	//商品削除
 	public void delete(int id) {
 		String update = "delete from product where id = ?";
 		jdbcTemplate.update(update, id);
 	}
-
+	
+	//商品情報更新
 	public void updateProduct(Product product) {
 		String update = "update product set title = ?,author = ?,release_day= ?,stock = ?,quantity = ?,price = ?,sales = ?,genre = ?,imgLink = ?,recommand = ?,notice = ?,view = ? where id = ?";
 		jdbcTemplate.update(update, product.getTitle(), product.getAuthor(), product.getRelease_day(),
 				product.getStock(), product.getQuantity(), product.getPrice(), product.getSales(), product.getGenre(),
 				product.getImgLink(), product.isRecommand(), product.getNotice(), product.isView(), product.getId());
 	}
-
+	
+	//全ジャンル取得
 	public List<genre> findAllGenre() {
 		String query = "select * from genre";
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(genre.class));
 	}
-
+	
+	//ジャンル追加
 	public void insertGenre(String genre, int id) {
 		try {
 			if (!genre.isBlank() && !genre.isEmpty()) {
@@ -137,10 +140,11 @@ public class ProductRepository{
 				jdbcTemplate.update(change, genre, id);
 			}
 		} catch (DuplicateKeyException e) {
-
+			System.out.println(e.getMessage());
 		}
 	}
-
+	
+	//ジャンル削除
 	public void deleteGenre(String genre, int id) {
 		Product product = findById(id);
 		if(product.getGenre().equals(genre)) {
@@ -150,7 +154,8 @@ public class ProductRepository{
 		String delete = "delete from genre where genrename = ?";
 		jdbcTemplate.update(delete,genre);
 	}
-
+	
+	//在庫検索
 	public List<Product> findSearchAll(int id, String title, String author, String genre) {
 		List<Product> list = new ArrayList<>();
 		boolean first = false;
@@ -199,16 +204,7 @@ public class ProductRepository{
 		return list;
 	}
 
-	//検索 清水 追加
-	public List<Product> search(String genre, String author, String title) {
-		String query = "SELECT * FROM Product WHERE genre = ? OR author = ? OR title = ? ;";
-		List<Product> list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Product.class), genre, author,
-				title);
-
-		return list;
-
-	}
-
+	//イチオシを10個に制限
 	public boolean CountRecommand() {
 		
 		String query = "select count(*) from product where recommand = true";
@@ -221,7 +217,6 @@ public class ProductRepository{
 		}
 	}
 
-//////ここから　0612中村追加
 	//レビュー表示 　import　でmodelを追加する
 	public List<Comment> TakeReviewRepo(int product_id) {
 		List<Comment> takeReview = new ArrayList<>();
@@ -240,9 +235,7 @@ public class ProductRepository{
 		String sql = "INSERT INTO comment(product_id,user_name,comment) VALUES(?,?,?);";
 		jdbcTemplate.update(sql, product_id, user_name, writeReview);
 	}
-//////ここまで　0612中村追加
 
-//////ここから　0615中村追加　位置情報機能
 	// 支店情報表示
 	public List<ShopLocation> shoplocationGetRepo() {
 		List<ShopLocation> shoploca = new ArrayList<>();
@@ -250,11 +243,9 @@ public class ProductRepository{
 		shoploca = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(ShopLocation.class));
 		return shoploca;
 	}
-//////ここまで　0615中村追加　位置情報機能
 	  
 	  //閲覧履歴保存
 	  public void addViewLog(String username,int product_id) {
-		  //--6/18追加文--
 		  String check = "SELECT COUNT(*) FROM viewlog WHERE productid = ? and username = ?";
 		  int result = jdbcTemplate.queryForObject(check,Integer.class, product_id,username);
 		  
@@ -266,7 +257,6 @@ public class ProductRepository{
 			  String update = "UPDATE viewlog SET date = ? WHERE productid = ?";
 			  jdbcTemplate.update(update,LocalDateTime.now(),product_id);
 		  }
-		  //--ここまで6/18
 	  }
 	  
 	  //閲覧履歴取り出し
@@ -334,6 +324,7 @@ public class ProductRepository{
 		  }
 	  }
 	  
+	  //在庫管理ページでのid検索欄用の検索履歴
 	  public List<SearchLog> findSearchIdLog(String username,String place){
 		  String query = "SELECT * FROM searchlog WHERE username = ? and place = ? and id != 0 ORDER BY date DESC LIMIT 5";
 		  List<SearchLog> list = new ArrayList<>();
@@ -341,6 +332,7 @@ public class ProductRepository{
 		  return list;
 	  }
 	  
+	//在庫管理ページでのタイトル検索欄用の検索履歴
 	  public List<SearchLog> findSearchTitleLog(String username,String place){
 		  String query = "SELECT * FROM searchlog WHERE username = ? and place = ? and title != ? ORDER BY date DESC LIMIT 5";
 		  List<SearchLog> list = new ArrayList<>();
@@ -348,6 +340,7 @@ public class ProductRepository{
 		  return list;
 	  }
 	  
+	//在庫管理ページでの著者検索欄用の検索履歴
 	  public List<SearchLog> findSearchAuthorLog(String username,String place){
 		  String query = "SELECT * FROM searchlog WHERE username = ? and place = ? and author != ? ORDER BY date DESC LIMIT 5";
 		  List<SearchLog> list = new ArrayList<>();
@@ -355,6 +348,7 @@ public class ProductRepository{
 		  return list;
 	  }
 	  
+	//在庫管理ページでのジャンル検索欄用の検索履歴
 	  public List<SearchLog> findSearchGenreLog(String username,String place){
 		  String query = "SELECT * FROM searchlog WHERE username = ? and place = ? and genre != null ORDER BY date DESC LIMIT 5";
 		  List<SearchLog> list = new ArrayList<>();
@@ -363,23 +357,14 @@ public class ProductRepository{
 	  }
 	  //--検索履歴ここまで--
 
-	//クーポン 清水追加
+	//クーポン
 	public Coupon findByCoupon(String couponcode) {
 		String query = "SELECT * FROM coupon where name = ?";
 		List<Coupon> list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Coupon.class), couponcode);
 		return list.isEmpty() ? null : list.get(0);
 	}
-
-//		public Coupon findByCoupon(String couponcode) {
-//			try {
-//				String query = "SELECT * FROM coupon where name = ?";
-//				return jdbcTemplate.queryForObject(query, new BeanPropertyRowMapper<>(Coupon.class), couponcode);
-//			} catch (EmptyResultDataAccessException e) {
-//				return null;
-//	
-//			}
-//		}
-
+	
+	//クーポンを使用済みに変更
 	public void couponUpdate(String couponcode) {
 
 		String query = "UPDATE coupon SET usedcoupon = true where name = ?";

@@ -8,11 +8,12 @@ import com.example.model.BuyLog;
 import com.example.model.Product;
 import com.example.model.User;
 import com.example.repository.UserRepository;
+import com.example.session.CartSession;
 
 @Service
 public class UserService {
 
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
 
 	public UserService(UserRepository userRepository) {
 		this.userRepository = userRepository;
@@ -27,7 +28,7 @@ public class UserService {
 	}
 
 	public boolean userExists(String username) {
-	    return userRepository.findByUsername(username) != null;
+		return userRepository.findByUsername(username) != null;
 	}
 
 	public int userUpdate(User user) {
@@ -38,7 +39,6 @@ public class UserService {
 		userRepository.AddAdmin();
 	}
 
-
 	public void insertLog(String username, Product p) {
 		userRepository.insertLog(username, p);
 
@@ -48,44 +48,42 @@ public class UserService {
 		return userRepository.findByLog(username);
 
 	}
-	
-	public void updateuserAddress(User user){
+
+	public void updateuserAddress(User user) {
 		userRepository.updateAll(user);
 	}
-	
-	//ポイント 清水追加
-		public void point(User user) {
-			userRepository.pointUpdate(user);
-		}
-		
-		public void SendCartMessage(String mailaddress,String about,List<Product> list) {
-			userRepository.SendCartMessage(mailaddress,about,list);
-		}
-		
-		public void SendRegisterMessage(String mailaddress,String about, String message) {
-			userRepository.SendRegisterMessage(mailaddress, about, message);
-		}
-		
-		public List<User> findAllUser() {
-			return userRepository.findAllUser();
-		}
-		
-		public void updateEnabled(User user) {
-			userRepository.updateEnabled(user);
-		}
-		
-		public void updateRole(User user) {
-			userRepository.updateRole(user);
-		}
 
-	//////ここから　0618中村追加　通報
-			//alert_review　に　通報者と通報されたユーザ　の組み合わせがあるか確認する
-			public int Search_alert_count(String user_send_alert, String username) {
-				return userRepository.Search_alert_countRepo(user_send_alert, username);
-			}
-			
-			public void ReviewAlertService(int user_alert_count, String username) {
-				userRepository.ReviewAlertRepo(user_alert_count, username);
-			}
-	//////ここまで　0618中村追加　通報
+	//ポイント 清水追加
+	public void point(User user) {
+		userRepository.pointUpdate(user);
+	}
+
+	public void SendCartMessage(String mailaddress, String about, CartSession cartSession) {
+		userRepository.SendCartMessage(mailaddress, about, cartSession);
+	}
+
+	public void SendRegisterMessage(String mailaddress, String about, String message) {
+		userRepository.SendRegisterMessage(mailaddress, about, message);
+	}
+
+	public List<User> findAllUser() {
+		return userRepository.findAllUser();
+	}
+
+	public void updateEnabled(User user) {
+		userRepository.updateEnabled(user);
+	}
+
+	public void updateRole(User user) {
+		userRepository.updateRole(user);
+	}
+
+	//alert_review　に　通報者と通報されたユーザ　の組み合わせがあるか確認する
+	public int Search_alert_count(String user_send_alert, String username) {
+		return userRepository.Search_alert_countRepo(user_send_alert, username);
+	}
+
+	public void ReviewAlertService(int user_alert_count, String username) {
+		userRepository.ReviewAlertRepo(user_alert_count, username);
+	}
 }

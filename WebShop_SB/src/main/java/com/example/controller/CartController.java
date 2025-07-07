@@ -28,203 +28,209 @@ import com.example.session.CartSessionManager;
 
 @Controller
 public class CartController {
-	
+
 	@Autowired
 	private CartService cartService;
-	
+
 	@Autowired
 	private RecommendationService recommendationService;
-	
+
 	@Autowired
 	private ProductService productService;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private CartSessionManager cartSessionManager;
-	
+
 	//クーポン機能追加 清水
-		@GetMapping("/cart")
-		public String viewCart(HttpSession session, Model model, @AuthenticationPrincipal UserDetails userDetails) {
-			 String username = userDetails.getUsername();
-			    User user = userService.findByUsername(username);
+	@GetMapping("/cart")
+	public String viewCart(HttpSession session, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+		String username = userDetails.getUsername();
+		User user = userService.findByUsername(username);
 
-			    CartSession cartSession = cartSessionManager.get(session);
-			    List<Product> cart = cartSession.getCart();
-			    int usePoint = cartSession.getUsePoint();
-			    Coupon coupon = cartSession.getCoupon();
-			    int sumBefore = cartService.calculateTotal(cart);
+		CartSession cartSession = cartSessionManager.get(session);
+		List<Product> cart = cartSession.getCart();
+		int usePoint = cartSession.getUsePoint();
+		Coupon coupon = cartSession.getCoupon();
+		int sumBefore = cartService.calculateTotal(cart);
 
-			    CartSummary summary = cartService.applyCouponAndPoints(cart, usePoint, coupon, sumBefore);
-			    cartSession.setSum(summary.getFinalPrice());
-			    cartSessionManager.save(session, cartSession);
+		CartSummary summary = cartService.applyCouponAndPoints(cart, usePoint, coupon, sumBefore);
+		cartSession.setSum(summary.getFinalPrice());
+		cartSessionManager.save(session, cartSession);
 
-			    model.addAttribute("sum", summary.getFinalPrice());
-			    model.addAttribute("userPoint", user.getPoint() - usePoint);
-			    model.addAttribute("pointbefore", (int) (summary.getFinalPrice() * 0.1));
-			    model.addAttribute("cart", cart);
-			    model.addAttribute("loginUser", username);
+		model.addAttribute("sum", summary.getFinalPrice());
+		model.addAttribute("userPoint", user.getPoint() - usePoint);
+		model.addAttribute("pointbefore", (int) (summary.getFinalPrice() * 0.1));
+		model.addAttribute("cart", cart);
+		model.addAttribute("loginUser", username);
 
-			    if (summary.getMessage() != null) {
-			        model.addAttribute("error", summary.getMessage());
-			    }
-
-			    Optional<Product> recommended = recommendationService.recommendProduct(cart, username);
-			    recommended.ifPresent(p -> {
-			        model.addAttribute("recommendProduct", productService.findAll());
-			        model.addAttribute("recommendId", p.getId());
-			    });
-
-			    return "cart";
+		if (summary.getMessage() != null) {
+			model.addAttribute("error", summary.getMessage());
 		}
 
-		//クーポン機能 清水追加
-		@PostMapping("/coupon")
-		public String coupon(Model model, HttpSession session,
-				@RequestParam(value = "couponcode", required = false) String couponcode) {
-			
-			Coupon coupon = productService.findByCoupon(couponcode);
+		Optional<Product> recommended = recommendationService.recommendProduct(cart, username);
+		recommended.ifPresent(p -> {
+			model.addAttribute("recommendProduct", productService.findAll());
+			model.addAttribute("recommendId", p.getId());
+		});
+
+		return "cart";
+	}
+
+	//クーポン機能
+	@PostMapping("/coupon")
+	public String coupon(Model model, HttpSession session,
+			@RequestParam(value = "couponcode", required = false) String couponcode) {
+
+		Coupon coupon = productService.findByCoupon(couponcode);
+		CartSession cartSession = cartSessionManager.get(session);
+		cartSession.setCoupon(coupon);
+		cartSessionManager.save(session, cartSession);
+
+		return "redirect:/cart";
+	}
+
+	// ポイント
+	@PostMapping("/usepoint")
+	public String usepoint(Model model, @RequestParam("usepoint") int usepoint, HttpSession session,
+			@AuthenticationPrincipal UserDetails userDetails) {
+
+		//現在の所持ポイント
+		String username = userDetails.getUsername();
+		User user = userService.findByUsername(username);
+		int userPoint = user.getPoint();
+
+		userPoint -= usepoint;
+
+		if (userPoint < 0) {
+			usepoint = user.getPoint();
+		} else if (usepoint < 0) {
+			usepoint = 0;
+		}
+
+		CartSession cartSession = cartSessionManager.get(session);
+		cartSession.setUsePoint(usepoint);
+		cartSessionManager.save(session, cartSession);
+
+		return "redirect:/cart";
+
+	}
+
+	//カート追加
+	@PostMapping("/cart/add")
+	public String addToCart(@RequestParam("id") int productId, HttpSession session,
+			@AuthenticationPrincipal UserDetails userDetails) {
+
+		Product product = productService.findById(productId);
+		if (product != null) {
 			CartSession cartSession = cartSessionManager.get(session);
-			cartSession.setCoupon(coupon);
+			List<Product> cart = cartSession.getCart();
+			if (cart == null) {
+				cart = new ArrayList<>();
+			}
+
+			boolean found = false;
+			for (Product p : cart) {
+				if (p.getId() == product.getId()) {
+					p.setQuantity(p.getQuantity() + 1);
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				product.setQuantity(1);
+				cart.add(product);
+			}
+
+			cartSession.setCart(cart);
 			cartSessionManager.save(session, cartSession);
-			
-			return "redirect:/cart";
 		}
 
-		// ポイント ポスト清水追加
-		@PostMapping("/usepoint")
-		public String usepoint(Model model, @RequestParam("usepoint") int usepoint, HttpSession session,
-				@AuthenticationPrincipal UserDetails userDetails) {
-			
-			//現在の所持ポイント
+		// カートページにリダイレクト
+		return "redirect:/cart";
+	}
+
+	//カート数量変更
+	@PostMapping("/cart/update")
+	public String updateCart(@RequestParam("productId") int productId, @RequestParam("quantity") int quantity,
+			HttpSession session) {
+		CartSession cartSession = cartSessionManager.get(session);
+		List<Product> cart = cartSession.getCart();
+		if (cart != null) {
+			for (Product product : cart) {
+				if (product.getId() == productId) {
+					product.setQuantity(quantity); // 数量を更新
+					break;
+				}
+			}
+			cartSessionManager.save(session, cartSession);
+		}
+		return "redirect:/cart"; // カートページにリダイレクト
+	}
+
+	//カート削除
+	@PostMapping("/cart/remove")
+	public String removeFromCart(@RequestParam("productId") int productId, HttpSession session) {
+		CartSession cartSession = cartSessionManager.get(session);
+		List<Product> cart = cartSession.getCart();
+		if (cart != null) {
+			cart.removeIf(product -> product.getId() == productId); // 指定されたIDの商品を削除
+			cartSession.setCart(cart);
+			cartSession.setSum(cartService.calculateTotal(cart));
+		}
+
+		return "redirect:/cart"; // カートページにリダイレクト
+	}
+
+	//購入ページ
+	@PostMapping("/buy")
+	public String buy() {
+		return "redirect:/buyComplete";
+	}
+
+	//購入処理
+	@GetMapping("/buyComplete")
+	public String buyComplete(Model model, HttpSession session,
+			@AuthenticationPrincipal UserDetails userDetails) {
+
+		CartSession cartSession = cartSessionManager.get(session);
+		List<Product> cart = cartSession.getCart();
+
+		//カート変更
+		int result = productService.update(cart);
+
+		if (result > 0) {
 			String username = userDetails.getUsername();
+			userService.SendCartMessage(userService.findByUsername(username).getMailaddress(), "購入完了メール", cartSession);
+			for (Product p : cart) {
+				userService.insertLog(username, p);
+			}
+
+			int sum = cartSession.getSum();
+
+			//所持ポイントから使用ポイントを引いてそれに還元ポイントを足す処理
 			User user = userService.findByUsername(username);
-			int userPoint = user.getPoint();
-			
-			userPoint -= usepoint;
+			int userpoint = user.getPoint();
+			Object usepointObj = cartSession.getUsePoint();
+			int usepoint = (usepointObj instanceof Integer) ? (int) usepointObj : 0;
+			int point = (int) ((userpoint - usepoint) + sum * 0.1);
+			user.setPoint(point);
 
-			if (userPoint < 0) {
-				usepoint = user.getPoint();
-			} else if(usepoint < 0) {
-				usepoint = 0;
+			//クーポンを使用済みに更新
+			if (cartSession.getCoupon() != null) {
+				Coupon coupon = cartSession.getCoupon();
+				productService.couponUpdate(coupon.getName());
 			}
-			
-			CartSession cartSession = cartSessionManager.get(session);
-			cartSession.setUsePoint(usepoint);
-			cartSessionManager.save(session, cartSession);
-			
-			return "redirect:/cart";
 
-		}
+			userService.point(user);
 
-		@PostMapping("/cart/add")
-		public String addToCart(@RequestParam("id") int productId, HttpSession session,
-				@AuthenticationPrincipal UserDetails userDetails) {
-			
-			Product product = productService.findById(productId);
-			if (product != null) {
-				CartSession cartSession = cartSessionManager.get(session);
-				List<Product> cart = cartSession.getCart();
-				if (cart == null) {
-					cart = new ArrayList<>();
-				}
-
-				boolean found = false;
-				for (Product p : cart) {
-					if (p.getId() == product.getId()) {
-						p.setQuantity(p.getQuantity() + 1);
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					product.setQuantity(1);
-					cart.add(product);
-				}
-
-				cartSession.setCart(cart);
-				cartSessionManager.save(session,cartSession);
-			}
-			
-			// カートページにリダイレクト
+			cartSessionManager.clear(session);
+			return "buyComplete";
+		} else {
 			return "redirect:/cart";
 		}
-
-		@PostMapping("/cart/update")
-		public String updateCart(@RequestParam("productId") int productId, @RequestParam("quantity") int quantity,
-				HttpSession session) {
-			CartSession cartSession = cartSessionManager.get(session);
-			List<Product> cart = cartSession.getCart();
-			if (cart != null) {
-				for (Product product : cart) {
-					if (product.getId() == productId) {
-						product.setQuantity(quantity); // 数量を更新
-						break;
-					}
-				}
-				cartSessionManager.save(session, cartSession);
-			}
-			return "redirect:/cart"; // カートページにリダイレクト
-		}
-
-		@PostMapping("/cart/remove")
-		public String removeFromCart(@RequestParam("productId") int productId, HttpSession session) {
-			CartSession cartSession = cartSessionManager.get(session);
-			List<Product> cart = cartSession.getCart();
-			if (cart != null) {
-				cart.removeIf(product -> product.getId() == productId); // 指定されたIDの商品を削除
-				cartSession.setCart(cart);
-				cartSession.setSum(cartService.calculateTotal(cart));
-			}
-
-			return "redirect:/cart"; // カートページにリダイレクト
-		}
-
-		@PostMapping("/buy")
-		public String buy() {
-			return "redirect:/buyComplete";	
-		}
-				
-		@GetMapping("/buyComplete")
-		public String buyComplete(Model model, HttpSession session,
-				@AuthenticationPrincipal UserDetails userDetails) {
-			
-			CartSession cartSession = cartSessionManager.get(session);
-			List<Product> cart = cartSession.getCart();
-
-			int result = productService.update(cart);
-
-			if (result > 0) {
-				String username = userDetails.getUsername();
-				userService.SendCartMessage(userService.findByUsername(username).getMailaddress(), "購入完了メール", cart);
-				for (Product p : cart) {
-					userService.insertLog(username, p);
-				}
-
-				int sum = cartSession.getSum();
-
-				//所持ポイントから使用ポイントを引いてそれに還元ポイントを足す処理
-				User user = userService.findByUsername(username);
-				int userpoint = user.getPoint();
-				Object usepointObj = cartSession.getUsePoint();
-				int usepoint = (usepointObj instanceof Integer) ? (int) usepointObj : 0;
-				int point = (int) ((userpoint - usepoint) + sum * 0.1);
-				user.setPoint(point);
-
-				//クーポンを使用済みに更新
-				if (cartSession.getCoupon() != null) {
-					Coupon coupon = cartSession.getCoupon();
-					productService.couponUpdate(coupon.getName());
-				}
-
-				userService.point(user);
-
-				cartSessionManager.clear(session);
-				return "buyComplete";
-			} else {
-				return "redirect:/cart";
-			}
-		}
+	}
 }

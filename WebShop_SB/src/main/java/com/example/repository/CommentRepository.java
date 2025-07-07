@@ -15,7 +15,8 @@ public class CommentRepository {
 	public CommentRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
-
+	
+	//レビュー全取得
 	public List<Comment> findAllReview() {
 		String query = "SELECT * FROM comment";
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Comment.class));

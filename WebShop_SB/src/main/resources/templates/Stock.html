@@ -47,7 +47,8 @@
 					document.getElementById(addfieldId).style.display="none";
 				} else {
 					document.getElementById(addfieldId).style.display="none";
-					document.getElementById(deletefieldId).style.display="none";				}
+					document.getElementById(deletefieldId).style.display="none";				
+				}
 			}
 			
 		
@@ -455,6 +456,7 @@
 		</datalist>
 		ジャンル<br>
 		<select name="genre">
+			<option th:value="---" th:text="---"></option>
 			<option th:each="item : ${genrelist}" th:value="${item.genrename}" th:text="${item.genrename}"></option>
 		</select><br>
 		<button type="submit">検索</button>
@@ -727,7 +729,7 @@
 					</form>
 			</td>
 			<td width = "80">
-				<form th:action="delete2" method="post">
+				<form th:action="removeProduct" method="post">
 					<input type="hidden" name="id" th:value="${p.id}">
 					<button class="b_color3">削除</button>
 				</form>
@@ -743,7 +745,7 @@
 			
 			
 			<td>
-				<form th:action="addsyouhin" method="post">
+				<form th:action="addProductDefault" method="post">
 					<button  type="submit">商品追加</button>
 				</form>
 			</td>

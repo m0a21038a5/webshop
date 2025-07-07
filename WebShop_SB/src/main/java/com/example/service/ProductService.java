@@ -96,11 +96,6 @@ public class ProductService {
 		return productRepository.findSalesRank();
 	}
 
-	// 検索 清水 追加
-	public List<Product> search(String genre, String author, String title) {
-		return productRepository.search(genre, author, title);
-	}
-
 	public boolean CountRecommand() {
 		return productRepository.CountRecommand();
 	}
