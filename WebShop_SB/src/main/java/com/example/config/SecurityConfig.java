@@ -52,6 +52,7 @@ public class SecurityConfig {
 							.requestMatchers("/js/**", "/images/**").permitAll()
 							.requestMatchers("/speech-to-text").permitAll() // 音声認識エンドポイントを認証なしにする
 							.requestMatchers("/api/speech/recognize").permitAll()
+							.requestMatchers("http://localhost:5005/transcribe").permitAll()
 							.requestMatchers("/wav/**").permitAll()
 							.requestMatchers("/ShopLocation").permitAll()
 							//これ以外のページは認証後にアクサス可

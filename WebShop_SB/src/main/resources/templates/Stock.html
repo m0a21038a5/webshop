@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>商品リスト</title>
+	<script src="https://cdn.jsdelivr.net/npm/wanakana@4.0.2/umd/wanakana.min.js" defer></script>
 	<script>
 		function toggleEditBox(id, field) {
 			const editBoxId = field + '-edit-' + id;
@@ -25,7 +26,43 @@
 			 const formId = "View" + id;
 			  document.getElementById(formId).submit();
 		 }
-    	  	
+		 
+		 document.addEventListener("DOMContentLoaded", function () {
+		 	const items = document.querySelectorAll("[id^=titleHira]"); // IDがtitleで始まるものを探す
+
+		 	items.forEach(item => {
+		 		const id = item.id.replace("titleHira", ""); // title123 → 123
+		 		const hiraInput = document.getElementById("titleHira" + id);
+		 		const kanaInput = document.getElementById("titleKana" + id);
+		 		const romajiInput = document.getElementById("titleRomaji" + id);
+
+		 		if (hiraInput && kanaInput && romajiInput) {
+		 			hiraInput.addEventListener("input", function () {
+		 				const value = hiraInput.value;
+		 				kanaInput.value = wanakana.toKatakana(value);
+		 				romajiInput.value = wanakana.toRomaji(value);
+		 			});
+		 		}
+		 	});
+
+		 	const authorItems = document.querySelectorAll("[id^=authorHira]");
+
+		 	authorItems.forEach(item => {
+		 		const id = item.id.replace("authorHira", ""); // author123 → 123
+		 		const hiraInput = document.getElementById("authorHira" + id);
+		 		const kanaInput = document.getElementById("authorKana" + id);
+		 		const romajiInput = document.getElementById("authorRomaji" + id);
+
+		 		if (hiraInput && kanaInput && romajiInput) {
+		 			hiraInput.addEventListener("input", function () {
+		 				const value = hiraInput.value;
+		 				kanaInput.value = wanakana.toKatakana(value);
+		 				romajiInput.value = wanakana.toRomaji(value);
+		 			});
+		 		}
+		 	});
+		 });
+	   	
 	</script>
 	<link rel="stylesheet" type="text/css" href="/css/homePage.css">
 	
@@ -497,8 +534,14 @@
 				<div th:id="'title-edit-' + ${p.id}" style="display:none; margin-top: 5px;">
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
-						<input type="text" name="title" th:value="${p.title}" required/>
+						<input type="text" name="title" th:value="${p.title}" th:id="'title' + ${p.id}" required/>
+						<input type="text" name="title_hira" th:value="${p.readings?.title_hira}" placeholder="ひらがな" th:id="'titleHira' + ${p.id}" required />
+						<input type="text" name="title_kana" th:value="${p.readings?.title_kana}" placeholder="カタカナ" th:id="'titleKana' + ${p.id}" required />
+						<input type="text" name="title_romaji" th:value="${p.readings?.title_romaji}" placeholder="ローマ字" th:id="'titleRomaji' + ${p.id}" required />
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -522,7 +565,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
-						<input type="text" name="author" th:value="${p.author}" required/>
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
+						<input type="text" name="author" th:value="${p.author}" th:id="'author' + ${p.id}" required/>
+						<input type="text" name="author_hira" th:value="${p.readings?.author_hira}" placeholder="ひらがな" th:id="'authorHira' + ${p.id}" required />
+						<input type="text" name="author_kana" th:value="${p.readings?.author_kana}" placeholder="カタカナ" th:id="'authorKana' + ${p.id}" required />
+						<input type="text" name="author_romaji" th:value="${p.readings?.author_romaji}" placeholder="ローマ字" th:id="'authorRomaji' + ${p.id}" required />
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -546,7 +595,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="text" name="release_day" th:value="${p.release_day}" required/>
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -570,7 +625,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="number" name="stock" th:value="${p.stock}" required min="0"/>
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -594,7 +655,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -619,7 +686,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -667,7 +740,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />
@@ -702,7 +781,13 @@
 					<form th:action="addProduct" method="post">
 						<input type="hidden" name="id" th:value="${p.id}" />
 						<input type="hidden" name="title" th:value="${p.title}" />
+						<input type="hidden" name="title_hira" th:value="${p.readings?.title_hira}"/>
+						<input type="hidden" name="title_kana" th:value="${p.readings?.title_kana}"/>
+						<input type="hidden" name="title_romaji" th:value="${p.readings?.title_romaji}"/>
 						<input type="hidden" name="author" th:value="${p.author}" />
+						<input type="hidden" name="author_hira" th:value="${p.readings?.author_hira}"/>
+						<input type="hidden" name="author_kana" th:value="${p.readings?.author_kana}"/>
+						<input type="hidden" name="author_romaji" th:value="${p.readings?.author_romaji}"/>
 						<input type="hidden" name="release_day" th:value="${p.release_day}" />
 						<input type="hidden" name="stock" th:value="${p.stock}" />
 						<input type="hidden" name="quantity" th:value="${p.quantity}" />

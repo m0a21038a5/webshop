@@ -1,6 +1,13 @@
 package com.example.controller;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
@@ -73,7 +80,38 @@ public class WebShopController {
 	@PostMapping(path = "/api/speech/recognize", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
 	@ResponseBody
 	public ResponseEntity<String> recognizeSpeech(@RequestPart("audioFile") MultipartFile audioFile){
-		return ResponseEntity.ok("夏目漱石");
+		 try {
+		        HttpClient httpClient = HttpClient.newHttpClient();
+		        HttpRequest.BodyPublisher body = buildMultipartBody(audioFile);
+
+		        HttpRequest request = HttpRequest.newBuilder()
+		            .uri(URI.create("http://localhost:5005/transcribe"))
+		            .header("Content-Type", "multipart/form-data; boundary=----JavaBoundary")
+		            .POST(body)
+		            .build();
+
+		        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+		        return ResponseEntity.ok(response.body());
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return ResponseEntity.status(500).body("エラー: " + e.getMessage());
+		    }
+	}
+	
+	private HttpRequest.BodyPublisher buildMultipartBody(MultipartFile file) throws IOException {
+	    String boundary = "----JavaBoundary";
+	    var byteArrays = new ArrayList<byte[]>();
+
+	    String header = "--" + boundary + "\r\n"
+	            + "Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getOriginalFilename() + "\"\r\n"
+	            + "Content-Type: " + file.getContentType() + "\r\n\r\n";
+
+	    byteArrays.add(header.getBytes(StandardCharsets.UTF_8));
+	    byteArrays.add(file.getBytes());
+	    byteArrays.add("\r\n--".concat(boundary).concat("--").getBytes(StandardCharsets.UTF_8));
+
+	    return HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
 	}
 
 	@GetMapping("/products")
@@ -101,10 +139,10 @@ public class WebShopController {
 			searchLog.setTitle(search);
 			productService.saveSearchLog(searchLog);
 		}
-
 		// 並び替え
 		productService.sortProductList(productList, sortrule);
 
+		
 		// モデルへの追加
 		model.addAttribute("products", productList);
 		model.addAttribute("search", search);

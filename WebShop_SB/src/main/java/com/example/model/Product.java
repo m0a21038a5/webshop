@@ -19,6 +19,15 @@ public class Product {
 	private boolean favorite;
 	private LocalDate releaseDay;
 	private int rank;
+	private Readings readings;
+	
+	public void setReadings(Readings readings) {
+		this.readings = readings;
+	}
+	
+	public Readings getReadings() {
+		return readings;
+	}
 
 	public int getRank() {
 		return rank;

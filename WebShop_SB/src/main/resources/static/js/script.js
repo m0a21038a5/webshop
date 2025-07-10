@@ -11,18 +11,60 @@ document.addEventListener("DOMContentLoaded", function() {
 	const searchButton = document.getElementById('search-btn');
 	const recordButton = document.getElementById('start-record-btn');
 	const track = document.getElementById("sliderTrack");
-
-
-// 録音ボタンの設定
+	
+	let isRecording = false;
+	let isAnalyzing = false;
+	let mediaRecorder = null;
+	let audioChunks = [];
+	
+	//録音ボタン
 	if (recordButton) {
-		recordButton.addEventListener('click', async () => {
-			document.getElementById('search-input').value = ""; // 検索入力をクリア
-			if (recordButton.classList.contains('recording')) return; // 録音中は何もしない
-			startRecording(); // 録音を開始
-		});
-	} else {
-		console.error("recordButtonが見つかりません。");
-	}
+			recordButton.addEventListener('click', async () => {
+				const buttonIcon = document.getElementById('button-icon');
+				const searchPadding = document.querySelector('.serch-padding');
+
+				if (!isRecording && !isAnalyzing) {
+					isRecording = true;
+					recordButton.classList.add('recording');
+					recordButton.style.backgroundColor = 'red';
+					buttonIcon.innerHTML = getRecordingIcon();
+					searchPadding.innerText = '録音中';
+
+					try {
+						const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+						audioChunks = [];
+						mediaRecorder = new MediaRecorder(stream);
+
+						mediaRecorder.ondataavailable = (event) => {
+							audioChunks.push(event.data);
+						};
+
+						mediaRecorder.onstop = async () => {
+							showAnalyzingState();
+							const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+							const transcript = await sendAudioToApi(audioBlob);
+							document.getElementById('search-input').value = transcript;
+							resetButton();
+						};
+
+						mediaRecorder.start();
+					} catch (error) {
+						console.error('録音開始中にエラー:', error);
+						await handleRecordingError();
+						resetButton();
+						isRecording = false;
+					}
+				} else if(isRecording && !isAnalyzing){
+					isRecording = false;
+					if (mediaRecorder && mediaRecorder.state === 'recording') {
+						mediaRecorder.stop();
+					}
+				}
+			});
+		}
+
+
+
 
 	// 検索ボタンの設定
 	if (searchButton) {
@@ -36,37 +78,8 @@ document.addEventListener("DOMContentLoaded", function() {
 		console.error("searchButtonが見つかりません。");
 	}
 
-
-	// 録音機能の実装
-	async function startRecording() { // startRecordingをasyncに変更
-		const buttonIcon = document.getElementById('button-icon');
-		const searchPadding = document.querySelector('.serch-padding'); // 音声入力のテキストを取得
-
-		recordButton.classList.add('recording');
-		recordButton.style.backgroundColor = 'red'; // ボタンの色を赤に変更
-		buttonIcon.innerHTML = getRecordingIcon(); // 録音中のアイコンに変更
-		searchPadding.innerText = '録音中'; // テキストを「録音中」に変更
-
-		try {
-			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-			const mediaRecorder = new MediaRecorder(stream);
-			const audioChunks = [];
-			mediaRecorder.start();
-			setTimeout(() => mediaRecorder.stop(), 4000); // 4秒後に録音を停止
-			mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-			mediaRecorder.onstop = async () => {
-				await handleRecordingStop(audioChunks);
-				resetButton(); // 録音が終了した後にボタンをリセット
-			};
-		} catch (error) {
-			console.error('録音中にエラーが発生しました:', error);
-			await handleRecordingError(); // エラー処理を呼び出す
-			resetButton();
-		}
-	}
-
 	async function handleRecordingError() {
-		const existingAudioPath = 'wav/Search_NatumeSouseki.wav'; // 既存のWAVファイルのパス
+		const existingAudioPath = 'wav/denoised.mp3'; // 既存のWAVファイルのパス
 		try {
 			const response = await fetch(existingAudioPath);
 			if (!response.ok) throw new Error('WAVファイルの読み込みに失敗しました');
@@ -82,24 +95,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	async function sendAudioToApi(audioBlob) {
 		const formData = new FormData();
-		formData.append('audioFile', audioBlob, 'recording.wav');
+		    formData.append('audioFile', audioBlob, 'recording.mp3');
 
-		try {
-			const response = await fetch('/api/speech/recognize', {
-				method: 'POST',
-				body: formData
-			});
+		    const response = await fetch('/api/speech/recognize', {
+		        method: 'POST',
+		        body: formData
+		    });
 
-			if (!response.ok) {
-				const errorText = await response.text(); // エラーメッセージを取得
-				console.error('音声認識に失敗しました:', errorText);
-				throw new Error('音声認識に失敗しました');
-			}
-
-			return await response.text(); // 文字列を返す
-		} catch (error) {
-			console.error('API呼び出し中にエラーが発生しました:', error);
-		}
+		    const resultJson = await response.json();
+		    document.getElementById('search-input').value = resultJson.text;
+			
+			return resultJson.text;
 	}
 
 
@@ -110,6 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		buttonIcon.innerHTML = getInitialIcon(); // 初期アイコンに戻す
 		const searchPadding = document.querySelector('.serch-padding'); // 音声入力のテキストを取得
 		searchPadding.innerText = '音声入力'; // テキストを元に戻す
+		isAnalyzing = false;
 	}
 
 	function getInitialIcon() {
@@ -128,10 +135,21 @@ document.addEventListener("DOMContentLoaded", function() {
     `;
 	}
 	async function handleRecordingStop(audioChunks) {
-		const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+		showAnalyzingState();
+		const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
 		const transcript = await sendAudioToApi(audioBlob);
 		console.log('録音からの文字列:', transcript); // コンソールに出力
 		document.getElementById('search-input').value = transcript; // テキストを検索欄に入力
+	}
+	
+	function showAnalyzingState() {
+		isAnalyzing = true;
+		const buttonIcon = document.getElementById('button-icon');
+		const searchPadding = document.querySelector('.serch-padding');
+
+		recordButton.style.backgroundColor = '#007bff'; // 青色に変更
+		buttonIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f"><path d="M722-322q-56-53-89-125t-33-153q0-81 33-153t89-125l62 64q-44 41-69 96t-25 118q0 63 25 119t69 97l-62 62Zm128-128q-32-29-50-67.5T782-600q0-44 18-82.5t50-67.5l64 64q-18 17-29 38.5T874-600q0 26 11 47.5t29 38.5l-64 64Zm-490 10q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM40-120v-112q0-33 17-62t47-44q51-26 115-44t141-18q77 0 141 18t115 44q30 15 47 44t17 62v112H40Zm80-80h480v-32q0-11-5.5-20T580-266q-36-18-92.5-36T360-320q-71 0-127.5 18T140-266q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-600q0-33-23.5-56.5T360-680q-33 0-56.5 23.5T280-600q0 33 23.5 56.5T360-520Zm0-80Zm0 400Z"/></svg>`;
+		searchPadding.innerText = '解析中...'; // テキスト変更
 	}
 
 	// 自動スライド制御

@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
@@ -14,8 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.model.Product;
+import com.example.model.Readings;
 import com.example.model.User;
 import com.example.service.ProductService;
+import com.example.service.ReadingService;
 import com.example.service.UserService;
 import com.example.session.StockSession;
 import com.example.session.StockSessionManager;
@@ -26,12 +29,14 @@ public class AdminController {
 	private final UserService userService;
 	private final ProductService productService;
 	private final StockSessionManager stockSessionManager;
+	private final ReadingService readingService;
 
 	public AdminController(UserService userService, ProductService productService,
-			StockSessionManager stockSessionManager) {
+			StockSessionManager stockSessionManager, ReadingService readingService) {
 		this.userService = userService;
 		this.productService = productService;
 		this.stockSessionManager = stockSessionManager;
+		this.readingService = readingService;
 	}
 
 	// 管理者ページ
@@ -45,13 +50,20 @@ public class AdminController {
 	public String StockManager(Model model, HttpSession session, @AuthenticationPrincipal UserDetails userDetails) {
 
 		StockSession stockSession = stockSessionManager.getStockSession(session);
-
+		List<Product> products = new ArrayList<>();
 		if (stockSession.getStock() == null) {
-			List<Product> products = productService.findAll();
+			products = productService.findAll();
 			stockSession.setStock(products);
+		} else {
+			products = stockSession.getStock();
 		}
-		model.addAttribute("list", stockSession.getStock());
 
+		for (Product product : products) {
+			Readings readings = readingService.findByProductId(product.getId());
+			product.setReadings(readings);
+		}
+
+		model.addAttribute("list", products);
 		//検索ログ保存
 		stockSessionManager.transferSearchConditionsToModel(session, model);
 
@@ -66,8 +78,16 @@ public class AdminController {
 
 	// 在庫情報アップデート
 	@PostMapping("/addProduct")
-	public String addProduct(@RequestParam("id") int id, @RequestParam("title") String title,
-			@RequestParam("author") String author, @RequestParam("release_day") String release_day,
+	public String addProduct(@RequestParam("id") int id,
+			@RequestParam("title") String title,
+			@RequestParam("title_hira") String title_hira,
+			@RequestParam("title_kana") String title_kana,
+			@RequestParam("title_romaji") String title_romaji,
+			@RequestParam("author") String author,
+			@RequestParam("author_hira") String author_hira,
+			@RequestParam("author_kana") String author_kana,
+			@RequestParam("author_romaji") String author_romaji,
+			@RequestParam(value = "release_day",required = false) String release_day,
 			@RequestParam("price") int price, @RequestParam("stock") int stock, @RequestParam("genre") String genre,
 			@RequestParam("imgLink") String imgLink, @RequestParam("notice") String notice,
 			@RequestParam("sales") int sales, Model model, HttpSession session) {
@@ -84,7 +104,11 @@ public class AdminController {
 		product.setGenre(genre);
 		product.setNotice(notice);
 
+		//商品情報更新
 		productService.updateProduct(product);
+
+		//読み仮名追加
+		readingService.updateReading(id, title_hira, title_kana, title_romaji, author_hira, author_kana, author_romaji);
 
 		StockSession stockSession = stockSessionManager.getStockSession(session);
 		List<Product> list = stockSession.getStock();
