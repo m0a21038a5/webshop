@@ -74,40 +74,57 @@ public class ProductRepository {
 
 	//ユーザーページ検索
 	public List<Product> searchByKeyword(String keyword) {
-		 if (keyword == null || keyword.isBlank()) {
-		        return findViewAll(); // 全件表示など
-		    }
+		if (keyword == null || keyword.isBlank()) {
+	        return findViewAll();
+	    }
 
-		    if (keyword.length() >= 2) {
-		        // FULLTEXT + JOIN検索
-		        String sql = """
-		            SELECT p.* FROM product p
-		            LEFT JOIN readings r ON p.id = r.product_id
-		            WHERE MATCH(p.title, p.author, p.genre, p.notice) AGAINST (? IN NATURAL LANGUAGE MODE)
-		               OR MATCH(r.title_hira, r.title_kana, r.title_romaji,
-		                        r.author_hira, r.author_kana, r.author_romaji)
-		                        AGAINST (? IN NATURAL LANGUAGE MODE)
-		              AND p.view = true
-		            ORDER BY MATCH(p.title, p.author, p.genre, p.notice)
-		                  AGAINST (? IN NATURAL LANGUAGE MODE) DESC
-		        """;
-		        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Product.class), keyword, keyword, keyword);
-		    } else {
-		        // LIKE検索（1文字）
-		        String like = "%" + keyword + "%";
-		        String sql = """
-		            SELECT p.* FROM product p
-		            LEFT JOIN readings r ON p.id = r.product_id
-		            WHERE (p.title LIKE ? OR p.author LIKE ? OR p.genre LIKE ?)
-		               OR (r.title_hira LIKE ? OR r.title_kana LIKE ? OR r.title_romaji LIKE ?
-		               OR r.author_hira LIKE ? OR r.author_kana LIKE ? OR r.author_romaji LIKE ?)
-		              AND p.view = true
-		        """;
-		        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Product.class),
-		                                  like, like, like,
-		                                  like, like, like,
-		                                  like, like, like);
-		    }
+	    // FULLTEXT検索
+	    String fulltextSql = """
+	        SELECT p.* FROM product p
+	        LEFT JOIN readings r ON p.id = r.product_id
+	        WHERE (
+	            MATCH(p.title, p.author, p.genre, p.notice)
+	            AGAINST (? IN NATURAL LANGUAGE MODE)
+	            OR MATCH(r.title_hira, r.title_kana, r.title_romaji,
+	                     r.author_hira, r.author_kana, r.author_romaji)
+	            AGAINST (? IN NATURAL LANGUAGE MODE)
+	        )
+	        AND p.view = true
+	        ORDER BY MATCH(p.title, p.author, p.genre, p.notice)
+	            AGAINST (? IN NATURAL LANGUAGE MODE) DESC
+	    """;
+
+	    List<Product> results = jdbcTemplate.query(fulltextSql,
+	        new BeanPropertyRowMapper<>(Product.class), keyword, keyword, keyword);
+
+	    // 空なら fallback
+	    if (results.isEmpty()) {
+	        // 一文字ずつに分割 → "夏雨" → ["夏", "雨"]
+	        char[] chars = keyword.toCharArray();
+	        StringBuilder likeClause = new StringBuilder();
+	        List<Object> params = new ArrayList<>();
+
+	        likeClause.append("SELECT DISTINCT p.* FROM product p ");
+	        likeClause.append("LEFT JOIN readings r ON p.id = r.product_id WHERE p.view = true AND (");
+
+	        for (int i = 0; i < chars.length; i++) {
+	            if (i > 0) likeClause.append(" OR ");
+	            likeClause.append("(p.title LIKE ? OR p.author LIKE ? OR p.genre LIKE ? OR p.notice LIKE ? ")
+	                      .append("OR r.title_hira LIKE ? OR r.title_kana LIKE ? OR r.title_romaji LIKE ? ")
+	                      .append("OR r.author_hira LIKE ? OR r.author_kana LIKE ? OR r.author_romaji LIKE ?)");
+	            String likeStr = "%" + chars[i] + "%";
+	            for (int j = 0; j < 10; j++) {
+	                params.add(likeStr);
+	            }
+	        }
+
+	        likeClause.append(")");
+
+	        return jdbcTemplate.query(likeClause.toString(),
+	            new BeanPropertyRowMapper<>(Product.class), params.toArray());
+	    }
+
+	    return results;
 	}
 
 	//購入処理

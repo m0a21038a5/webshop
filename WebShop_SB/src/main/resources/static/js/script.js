@@ -152,93 +152,8 @@ document.addEventListener("DOMContentLoaded", function() {
 		searchPadding.innerText = '解析中...'; // テキスト変更
 	}
 
-	// 自動スライド制御
-	function startAutoSlide() {
-		stopAutoSlide(); // 念のため重複防止
-		autoSlideInterval = setInterval(() => {
-			currentIndex = (currentIndex < total - 3) ? currentIndex + 1 : 0;
-			updateSlider();
-		}, 4000);
-	}
-
-	function stopAutoSlide() {
-		clearInterval(autoSlideInterval);
-		clearTimeout(autoSlideTimeout);
-	}
-
-	// 表示更新
-	function updateSlider() {
-		track.style.transition = 'transform 1s ease';
-		track.style.transform = `translateX(-${currentIndex * IMAGE_WIDTH}px)`;
-
-		wrappers.forEach(wrapper => {
-			wrapper.classList.remove("visible", "side");
-			wrapper.style.opacity = "0"; // 非表示初期化
-		});
-
-		for (let i = -1; i <= 3; i++) {
-			const index = (currentIndex + i + total) % total;
-			const wrapper = wrappers[index];
-
-			if (i === -1 && currentIndex > 0) {
-				wrapper.classList.add("side");
-				wrapper.style.opacity = "0.5";
-			} else if (i >= 0 && i <= 2) {
-				wrapper.classList.add("visible");
-				wrapper.style.opacity = "1";
-			} else if (i === 3 && currentIndex + 3 < total) {
-				wrapper.classList.add("side");
-				wrapper.style.opacity = "0.5";
-			}
-		}
-	}
-
-	// ドラッグ操作
-	track.addEventListener("mousedown", (e) => {
-		isDragging = true;
-		startX = e.clientX;
-		track.style.transition = 'none';
-		stopAutoSlide();
-	});
-
-	document.addEventListener("mouseup", (e) => {
-		if (!isDragging) return;
-		isDragging = false;
-		const deltaX = e.clientX - startX;
-
-		if (deltaX > 50 && currentIndex > 0) {
-			currentIndex--;
-		} else if (deltaX < -50 && currentIndex < total - 3) {
-			currentIndex++;
-		}
-
-		updateSlider();
-		autoSlideTimeout = setTimeout(() => {
-			startAutoSlide();
-		}, 1000);
-	});
-
-	track.addEventListener("mouseleave", () => {
-		if (isDragging) {
-			isDragging = false;
-			updateSlider();
-			autoSlideTimeout = setTimeout(() => {
-				startAutoSlide();
-			}, 1000);
-		}
-	});
-
-	// ハンバーガーメニューのトグル
-	const menu = document.querySelector('#header-menu');
-	const btn = document.querySelector('#hamburger');
-
-	if (btn) {
-		btn.addEventListener('click', () => {
-			btn.classList.toggle('open');
-			menu.classList.toggle('open');
-			menu.style.height = menu.classList.contains("open") ? menu.scrollHeight + 'px' : "0";
-		});
-	}
+	
+	
 
 	// 位置情報機能
 	const locationButton = document.getElementById('get-location');
@@ -262,7 +177,5 @@ document.addEventListener("DOMContentLoaded", function() {
 		});
 	}
 
-	// 初期化
-	updateSlider();
-	startAutoSlide();
+
 });
