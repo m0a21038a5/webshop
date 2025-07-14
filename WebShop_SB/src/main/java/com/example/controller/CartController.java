@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -20,6 +19,7 @@ import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.CartService;
+import com.example.service.MailService;
 import com.example.service.ProductService;
 import com.example.service.RecommendationService;
 import com.example.service.UserService;
@@ -29,20 +29,23 @@ import com.example.session.CartSessionManager;
 @Controller
 public class CartController {
 
-	@Autowired
-	private CartService cartService;
+	private final CartService cartService;
+	private final RecommendationService recommendationService;
+	private final ProductService productService;
+	private final UserService userService;
+	private final CartSessionManager cartSessionManager;
+	private final MailService mailService;
 
-	@Autowired
-	private RecommendationService recommendationService;
-
-	@Autowired
-	private ProductService productService;
-
-	@Autowired
-	private UserService userService;
-
-	@Autowired
-	private CartSessionManager cartSessionManager;
+	public CartController(CartService cartService, RecommendationService recommendationService,
+			ProductService productService, UserService userService, CartSessionManager cartSessionManagers,
+			MailService mailService) {
+		this.cartService = cartService;
+		this.recommendationService = recommendationService;
+		this.productService = productService;
+		this.userService = userService;
+		this.cartSessionManager = cartSessionManagers;
+		this.mailService = mailService;
+	}
 
 	//クーポン機能追加 清水
 	@GetMapping("/cart")
@@ -204,7 +207,7 @@ public class CartController {
 
 		if (result > 0) {
 			String username = userDetails.getUsername();
-			userService.SendCartMessage(userService.findByUsername(username).getMailaddress(), "購入完了メール", cartSession);
+			mailService.setCartMessage(userService.findByUsername(username).getMailaddress(), "購入完了メール", cartSession);
 			for (Product p : cart) {
 				userService.insertLog(username, p);
 			}

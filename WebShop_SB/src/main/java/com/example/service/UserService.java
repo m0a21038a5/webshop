@@ -8,7 +8,6 @@ import com.example.model.BuyLog;
 import com.example.model.Product;
 import com.example.model.User;
 import com.example.repository.UserRepository;
-import com.example.session.CartSession;
 
 @Service
 public class UserService {
@@ -35,10 +34,6 @@ public class UserService {
 		return userRepository.update(user);
 	}
 
-	public void AddAdmin() {
-		userRepository.AddAdmin();
-	}
-
 	public void insertLog(String username, Product p) {
 		userRepository.insertLog(username, p);
 
@@ -46,7 +41,6 @@ public class UserService {
 
 	public List<BuyLog> findByLog(String username) {
 		return userRepository.findByLog(username);
-
 	}
 
 	public void updateuserAddress(User user) {
@@ -56,14 +50,6 @@ public class UserService {
 	//ポイント 清水追加
 	public void point(User user) {
 		userRepository.pointUpdate(user);
-	}
-
-	public void SendCartMessage(String mailaddress, String about, CartSession cartSession) {
-		userRepository.SendCartMessage(mailaddress, about, cartSession);
-	}
-
-	public void SendRegisterMessage(String mailaddress, String about, String message) {
-		userRepository.SendRegisterMessage(mailaddress, about, message);
 	}
 
 	public List<User> findAllUser() {
@@ -78,12 +64,4 @@ public class UserService {
 		userRepository.updateRole(user);
 	}
 
-	//alert_review　に　通報者と通報されたユーザ　の組み合わせがあるか確認する
-	public int Search_alert_count(String user_send_alert, String username) {
-		return userRepository.Search_alert_countRepo(user_send_alert, username);
-	}
-
-	public void ReviewAlertService(int user_alert_count, String username) {
-		userRepository.ReviewAlertRepo(user_alert_count, username);
-	}
 }

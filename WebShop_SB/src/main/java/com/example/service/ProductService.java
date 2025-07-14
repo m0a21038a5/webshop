@@ -1,17 +1,12 @@
 package com.example.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.model.Comment;
 import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.SearchLog;
-import com.example.model.ShopLocation;
-import com.example.model.ViewLog;
-import com.example.model.alert_review;
 import com.example.model.genre;
 import com.example.repository.ProductRepository;
 
@@ -98,86 +93,6 @@ public class ProductService {
 
 	public boolean CountRecommand() {
 		return productRepository.CountRecommand();
-	}
-
-//////ここから　0612中村追加　修正済み
-	  //レビュー表示
-
-	  public List<Comment> TakeReview(int product_id, String user_send_alert) {
-	  	List<Comment> takeReview = productRepository.TakeReviewRepo(product_id);
-	  	List<alert_review> AlertReview = productRepository.UserName_AlertReviewRepo(user_send_alert);
-	  	
-	  	List<String> TakeUserAlertName = new ArrayList<>();
-	  	for(alert_review alertRe : AlertReview) {
-	  		String alna = alertRe.getUser_alert();
-	  		TakeUserAlertName.add(alna);
-	  	}
-	  	
-		for(Comment AlRecome : takeReview) {
-//			AlRecome.setAlreadyAlert(false);
-			String alre = AlRecome.getUser_name();
-			if(TakeUserAlertName.contains(alre)) {
-				AlRecome.setAlreadyAlert(true);
-			}
-		}
-	  	return takeReview;
-	  }
-
-	  
-	  //レビュー更新
-		public void SendReview(int product_id, String user_name, String writeReview) {
-			productRepository.SendReviewRepo(product_id, user_name, writeReview);
-		}
-///////ここまで　0612中村追加　修正済み
-
-//////ここから　0615中村追加　位置情報機能
-	// 支店情報表示
-	public List<ShopLocation> shoplocationGet() {
-		List<ShopLocation> shoploca = productRepository.shoplocationGetRepo();
-		return shoploca;
-	}
-
-	// 現在位置取得
-	public List<ShopLocation> shoploSe(String lat, String lng) {
-		List<ShopLocation> shoploca = productRepository.shoplocationGetRepo();
-		double lati = Double.parseDouble(lat);
-		double lngi = Double.parseDouble(lng);
-		List<ShopLocation> GetShopLo = new ArrayList<>();
-
-		for (ShopLocation ShLo : shoploca) {
-			double doubleshoplocationLatitude = ShLo.getLatitude();
-			double doubleshoplocationLongitude = ShLo.getLongitude();
-			double diffeLat = 0;
-			double diffeLng = 0;
-
-			// 緯度の差を算出
-			if (lati > doubleshoplocationLatitude) {
-				diffeLat = lati - doubleshoplocationLatitude;
-			} else {
-				diffeLat = doubleshoplocationLatitude - lati;
-			}
-
-			// 経度の差を算出
-			if (lngi > doubleshoplocationLongitude) {
-				diffeLng = lngi - doubleshoplocationLongitude;
-			} else {
-				diffeLng = doubleshoplocationLongitude - lngi;
-			}
-
-			if (diffeLat < 0.05 && diffeLng < 0.05) {
-				GetShopLo.add(ShLo);
-			}
-		}
-		return GetShopLo;
-	}
-//////ここまで　0615中村追加　位置情報機能
-	//閲覧履歴保存
-	public void addViewLog(String username, int product_id) {
-		productRepository.addViewLog(username, product_id);
-	}
-
-	public List<ViewLog> findAllViewLog(String username) {
-		return productRepository.findAllViewLog(username);
 	}
 
 	//検索履歴追加

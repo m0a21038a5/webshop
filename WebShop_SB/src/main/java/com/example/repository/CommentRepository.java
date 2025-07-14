@@ -23,22 +23,24 @@ public class CommentRepository {
 	}
 
 	// コメントをIDで取得
-	public Comment findByReviewId(int product_id) {
+	public List<Comment> findByReviewId(int product_id) {
 		String query = "SELECT * FROM comment WHERE product_id = ?";
 		List<Comment> list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Comment.class), product_id);
-		return list.isEmpty() ? null : list.get(0);
+		return list.isEmpty() ? null : list;
 	}
 
 	// レビューをデータベースに追加
-	public void addReview(int productId, int userId, String reviewText) {
-		String sql = "INSERT INTO comment(product_id, user_id, comment) VALUES(?, ?, ?)";
-		jdbcTemplate.update(sql, productId, userId, reviewText);
+	public void addReview(int productId, String username, String reviewText) {
+		String sql = "INSERT INTO comment(product_id, user_name, comment) VALUES(?, ?, ?)";
+		jdbcTemplate.update(sql, productId, username, reviewText);
 	}
 
 	// レビューを更新
-	public void updateReview(int commentId, int userId, String updatedReview) {
-		String sql = "UPDATE comment SET user_id = ?, comment = ? WHERE id = ?";
-		jdbcTemplate.update(sql, userId, updatedReview, commentId);
+	public void updateReview(int commentId, String username, String updatedReview) {
+		String sql = "UPDATE comment SET user_name = ?, comment = ? WHERE id = ?";
+		jdbcTemplate.update(sql, username, updatedReview, commentId);
 	}
-
+	
+	
+	
 }

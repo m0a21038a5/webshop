@@ -12,13 +12,9 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.example.model.Comment;
 import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.SearchLog;
-import com.example.model.ShopLocation;
-import com.example.model.ViewLog;
-import com.example.model.alert_review;
 import com.example.model.genre;
 
 @Repository
@@ -75,56 +71,103 @@ public class ProductRepository {
 	//ユーザーページ検索
 	public List<Product> searchByKeyword(String keyword) {
 		if (keyword == null || keyword.isBlank()) {
-	        return findViewAll();
-	    }
+			return findViewAll();
+		}
 
-	    // FULLTEXT検索
-	    String fulltextSql = """
-	        SELECT p.* FROM product p
-	        LEFT JOIN readings r ON p.id = r.product_id
-	        WHERE (
-	            MATCH(p.title, p.author, p.genre, p.notice)
-	            AGAINST (? IN NATURAL LANGUAGE MODE)
-	            OR MATCH(r.title_hira, r.title_kana, r.title_romaji,
-	                     r.author_hira, r.author_kana, r.author_romaji)
-	            AGAINST (? IN NATURAL LANGUAGE MODE)
-	        )
-	        AND p.view = true
-	        ORDER BY MATCH(p.title, p.author, p.genre, p.notice)
-	            AGAINST (? IN NATURAL LANGUAGE MODE) DESC
-	    """;
+		// FULLTEXT検索
+		String fulltextSql = """
+					        SELECT
+				    p.*,
+				    (
+				        2 * MATCH(p.title) AGAINST (? IN NATURAL LANGUAGE MODE) +
+				        1.5 * MATCH(p.author) AGAINST (? IN NATURAL LANGUAGE MODE) +
+				        1 * MATCH(p.genre) AGAINST (? IN NATURAL LANGUAGE MODE) +
+				        0.5 * MATCH(p.notice) AGAINST (? IN NATURAL LANGUAGE MODE) +
 
-	    List<Product> results = jdbcTemplate.query(fulltextSql,
-	        new BeanPropertyRowMapper<>(Product.class), keyword, keyword, keyword);
+				        1.5 * MATCH(r.title_hira, r.title_kana, r.title_romaji) AGAINST (? IN NATURAL LANGUAGE MODE) +
+				        1.5 * MATCH(r.author_hira, r.author_kana, r.author_romaji) AGAINST (? IN NATURAL LANGUAGE MODE)
+				    ) AS relevance_score
+				FROM product p
+				LEFT JOIN readings r ON p.id = r.product_id
+				WHERE (
+				    MATCH(p.title) AGAINST (? IN NATURAL LANGUAGE MODE) OR
+				    MATCH(p.author) AGAINST (? IN NATURAL LANGUAGE MODE) OR
+				    MATCH(p.genre) AGAINST (? IN NATURAL LANGUAGE MODE) OR
+				    MATCH(p.notice) AGAINST (? IN NATURAL LANGUAGE MODE) OR
+				    MATCH(r.title_hira, r.title_kana, r.title_romaji) AGAINST (? IN NATURAL LANGUAGE MODE) OR
+				    MATCH(r.author_hira, r.author_kana, r.author_romaji) AGAINST (? IN NATURAL LANGUAGE MODE)
+				)
+				AND p.view = true
+				ORDER BY relevance_score DESC;
+					    """;
 
-	    // 空なら fallback
-	    if (results.isEmpty()) {
-	        // 一文字ずつに分割 → "夏雨" → ["夏", "雨"]
-	        char[] chars = keyword.toCharArray();
-	        StringBuilder likeClause = new StringBuilder();
-	        List<Object> params = new ArrayList<>();
+		List<Product> results = jdbcTemplate.query(fulltextSql, new BeanPropertyRowMapper<>(Product.class),
+				keyword, keyword, keyword, keyword, // p.title ~ p.notice
+				keyword, keyword, // r.title系, r.author系
+				keyword, keyword, keyword, keyword, keyword, keyword // WHERE 条件用（6つ）
+		);
 
-	        likeClause.append("SELECT DISTINCT p.* FROM product p ");
-	        likeClause.append("LEFT JOIN readings r ON p.id = r.product_id WHERE p.view = true AND (");
+		// 空なら fallback
+		if (results.isEmpty()) {
+			char[] chars = keyword.toCharArray();
+			StringBuilder likeClause = new StringBuilder();
+			StringBuilder scoreClause = new StringBuilder(" (");
+			List<Object> params = new ArrayList<>();
 
-	        for (int i = 0; i < chars.length; i++) {
-	            if (i > 0) likeClause.append(" OR ");
-	            likeClause.append("(p.title LIKE ? OR p.author LIKE ? OR p.genre LIKE ? OR p.notice LIKE ? ")
-	                      .append("OR r.title_hira LIKE ? OR r.title_kana LIKE ? OR r.title_romaji LIKE ? ")
-	                      .append("OR r.author_hira LIKE ? OR r.author_kana LIKE ? OR r.author_romaji LIKE ?)");
-	            String likeStr = "%" + chars[i] + "%";
-	            for (int j = 0; j < 10; j++) {
-	                params.add(likeStr);
-	            }
-	        }
+			likeClause.append("SELECT DISTINCT p.*, ");
+			likeClause.append("("); // relevance_score開始
 
-	        likeClause.append(")");
+			for (int i = 0; i < chars.length; i++) {
+				String likeStr = "%" + chars[i] + "%";
 
-	        return jdbcTemplate.query(likeClause.toString(),
-	            new BeanPropertyRowMapper<>(Product.class), params.toArray());
-	    }
+				// フィールドごとにスコア加算
+				if (i > 0) {
+					likeClause.append(" + ");
+					scoreClause.append(" + ");
+				}
 
-	    return results;
+				likeClause.append(
+						"(CASE WHEN p.title LIKE ? THEN 3 ELSE 0 END + " +
+								"CASE WHEN p.author LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN p.genre LIKE ? THEN 1 ELSE 0 END + " +
+								"CASE WHEN p.notice LIKE ? THEN 0.5 ELSE 0 END + " +
+								"CASE WHEN r.title_hira LIKE ? THEN 3 ELSE 0 END + " +
+								"CASE WHEN r.title_kana LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN r.title_romaji LIKE ? THEN 1 ELSE 0 END + " +
+								"CASE WHEN r.author_hira LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN r.author_kana LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN r.author_romaji LIKE ? THEN 1 ELSE 0 END)");
+
+				scoreClause.append(
+						"(CASE WHEN p.title LIKE ? THEN 3 ELSE 0 END + " +
+								"CASE WHEN p.author LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN p.genre LIKE ? THEN 1 ELSE 0 END + " +
+								"CASE WHEN p.notice LIKE ? THEN 1 ELSE 0 END + " +
+								"CASE WHEN r.title_hira LIKE ? THEN 3 ELSE 0 END + " +
+								"CASE WHEN r.title_kana LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN r.title_romaji LIKE ? THEN 1 ELSE 0 END + " +
+								"CASE WHEN r.author_hira LIKE ? THEN 3 ELSE 0 END + " +
+								"CASE WHEN r.author_kana LIKE ? THEN 2 ELSE 0 END + " +
+								"CASE WHEN r.author_romaji LIKE ? THEN 1 ELSE 0 END)");
+
+				// 同じLIKEを各フィールドに適用
+				for (int j = 0; j < 10; j++) {
+					params.add(likeStr);
+				}
+			}
+
+			likeClause.append(") AS relevance_score ");
+			likeClause.append("FROM product p ");
+			likeClause.append("LEFT JOIN readings r ON p.id = r.product_id ");
+			likeClause.append("WHERE p.view = true ");
+			likeClause.append("HAVING relevance_score > 0 ");
+			likeClause.append("ORDER BY relevance_score DESC");
+
+			return jdbcTemplate.query(likeClause.toString(),
+					new BeanPropertyRowMapper<>(Product.class), params.toArray());
+		}
+
+		return results;
 	}
 
 	//購入処理
@@ -258,57 +301,6 @@ public class ProductRepository {
 		} else {
 			return false;
 		}
-	}
-
-	//レビュー表示 　import　でmodelを追加する
-	public List<Comment> TakeReviewRepo(int product_id) {
-		List<Comment> takeReview = new ArrayList<>();
-		String sql = "SELECT * FROM comment WHERE product_id=?";
-		takeReview = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Comment.class), product_id);
-		return takeReview;
-	}
-
-	public List<alert_review> UserName_AlertReviewRepo(String user_send_alert) {
-		String sql = "select * from alert_review where user_send_alert=?";
-		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(alert_review.class), user_send_alert);
-	}
-
-	//レビュー更新　レビューをデータベースに追加
-	public void SendReviewRepo(int product_id, String user_name, String writeReview) {
-		String sql = "INSERT INTO comment(product_id,user_name,comment) VALUES(?,?,?);";
-		jdbcTemplate.update(sql, product_id, user_name, writeReview);
-	}
-
-	// 支店情報表示
-	public List<ShopLocation> shoplocationGetRepo() {
-		List<ShopLocation> shoploca = new ArrayList<>();
-		String sql = "SELECT * FROM shoplocation";
-		shoploca = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(ShopLocation.class));
-		return shoploca;
-	}
-
-	//閲覧履歴保存
-	public void addViewLog(String username, int product_id) {
-		String check = "SELECT COUNT(*) FROM viewlog WHERE productid = ? and username = ?";
-		int result = jdbcTemplate.queryForObject(check, Integer.class, product_id, username);
-
-		if (result == 0) {
-			Product pro = findById(product_id);
-			String insert = "INSERT INTO viewlog(username,productid,title,author,release_day,price,genre,imgLink) VALUES(?,?,?,?,?,?,?,?)";
-			jdbcTemplate.update(insert, username, product_id, pro.getTitle(), pro.getAuthor(), pro.getRelease_day(),
-					pro.getPrice(), pro.getGenre(), pro.getImgLink());
-		} else if (result > 0) {
-			String update = "UPDATE viewlog SET date = ? WHERE productid = ?";
-			jdbcTemplate.update(update, LocalDateTime.now(), product_id);
-		}
-	}
-
-	//閲覧履歴取り出し
-	public List<ViewLog> findAllViewLog(String username) {
-		List<ViewLog> list = new ArrayList<>();
-		String query = "SELECT * FROM viewlog WHERE username = ? ORDER BY date DESC";
-		list = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(ViewLog.class), username);
-		return list;
 	}
 
 	//--検索履歴--
