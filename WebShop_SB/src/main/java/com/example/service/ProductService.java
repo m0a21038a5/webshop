@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.SearchLog;
-import com.example.model.genre;
 import com.example.repository.ProductRepository;
 
 @Service
@@ -30,11 +29,11 @@ public class ProductService {
 	public List<Product> searchByKeyword(String keyword) {
 		return productRepository.searchByKeyword(keyword);
 	}
-	
+
 	public void sortProductList(List<Product> products, String rank) {
-	   productRepository.sortProductList(products,rank);
+		productRepository.sortProductList(products, rank);
 	}
-	
+
 	public int update(List<Product> list) {
 		int result = 0;
 		int count = 0;
@@ -48,51 +47,23 @@ public class ProductService {
 		return count;
 	}
 
-	public void insert(Product product) {
-		productRepository.insert(product);
-	}
-
-	public void delete(int id) {
-		productRepository.delete(id);
-	}
-
-	public void updateProduct(Product product) {
-		productRepository.updateProduct(product);
-	}
-
-	public List<genre> findAllGenre() {
-		return productRepository.findAllGenre();
-	}
-
-	public void addNewGenre(String genre, int id) {
-		productRepository.insertGenre(genre, id);
-	}
-
-	public void deleteGenre(String genre, int id) {
-		productRepository.deleteGenre(genre, id);
-	}
-
 	public List<Product> findSearchAll(int id, String name, String author, String genre) {
 		return productRepository.findSearchAll(id, name, author, genre);
 	}
-	
+
 	//公開済み商品取得
 	public List<Product> findViewAll() {
 		return productRepository.findViewAll();
 	}
-	
+
 	//イチオシ商品取得
-	public List<Product> findRecommand(){
+	public List<Product> findRecommand() {
 		return productRepository.findRecommand();
 	}
-	
-	//売り上げランキングトップ10
-	public List<Product> findSalesRank(){
-		return productRepository.findSalesRank();
-	}
 
-	public boolean CountRecommand() {
-		return productRepository.CountRecommand();
+	//売り上げランキングトップ10
+	public List<Product> findSalesRank() {
+		return productRepository.findSalesRank();
 	}
 
 	//検索履歴追加

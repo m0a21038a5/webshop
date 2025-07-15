@@ -36,5 +36,5 @@ public class ShopLocationController {
 		model.addAttribute("getnowlocation", shopLocationService.shoploSe(lat, lng));
 		return "/ShopLocation";
 	}
-s
+
 }
