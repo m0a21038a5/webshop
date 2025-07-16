@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.model.BuyLog;
-import com.example.model.Product;
 import com.example.model.User;
 import com.example.repository.UserRepository;
 
@@ -34,14 +32,7 @@ public class UserService {
 		return userRepository.update(user);
 	}
 
-	public void insertLog(String username, Product p) {
-		userRepository.insertLog(username, p);
-
-	}
-
-	public List<BuyLog> findByLog(String username) {
-		return userRepository.findByLog(username);
-	}
+	
 
 	public void updateuserAddress(User user) {
 		userRepository.updateAll(user);

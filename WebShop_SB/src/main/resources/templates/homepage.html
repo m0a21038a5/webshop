@@ -62,7 +62,13 @@
 		<button id="get-location" class ="b_color">店舗検索</button>
 		<!-- <button id="get-location" type="button">店舗検索</button> -->
 	</form>
-
+	
+	
+	<div class="button-container">
+		<button th:onclick="|window.location.href='@{/products}'|" class="b_color_genre">本</button>
+		<button th:onclick="|window.location.href='@{/products}'|" class="b_color_genre">本</button>
+	</div>
+	
 	<div id="location-output"></div>
 	
 	<div class="out">
@@ -70,11 +76,17 @@
 	<form id="search-form" th:action="@{/products}" method="get">
 			<div class="center-wrapper">
 				<div class="boxlayer">
+					<div class="button-container">
+					<select name="genre" class="select-genre">
+						<option value="---">---</option>
+						<option th:each="item : ${allGenre}" th:value="${item.genrename}" th:text="${item.genrename}"></option>
+					</select>
 					<input type="text" id="search-input" name="search" placeholder="検索キーワードを入力..."
 						th:value="${search}" list="titleLog"/>
 						<datalist id="titleLog">
 		<option th:each="item : ${searchList}" th:value="${item.title}" th:text="${item.title}"></option>
 		</datalist>
+		</div>
 					<button id="start-record-btn" type="button">
 						<span id="button-icon"> <svg xmlns="http://www.w3.org/2000/svg" height="24px"
 								viewBox="0 -960 960 960" width="24px" fill="#1f1f1f">

@@ -64,6 +64,27 @@
 		width: 100%;
 	}
 	
+	.b_color_genre {
+		background-color: #5cb85c;
+		color: white;
+		padding: 10px;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		width: 50%;
+	}
+	
+	.button-container {
+	        display: flex; /* フレックスコンテナとして設定 */
+	        gap: 0px; /* ボタン間の間隔を設定（必要に応じて調整） */
+	 }
+	
+	 .select-genre {
+	         height: 40px;  /* 高さを指定 */
+			 padding: 10px;
+	         font-size: 16px;  /* フォントサイズを調整 */
+	 }
+	 
 	.b_color_2 {
 		background-color: rgb(192, 192, 192);
 		color: white;

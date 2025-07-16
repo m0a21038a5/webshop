@@ -11,17 +11,17 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.BuyLog;
 import com.example.model.Product;
+import com.example.repository.BuyLogRepository;
 import com.example.repository.ProductRepository;
-import com.example.repository.WMProRepository;
 
 @Service
 public class RecommendationService {
 
-	private final WMProRepository buyLogRepository;
+	private final BuyLogRepository buyLogRepository;
 
 	private final ProductRepository productRepository;
 	
-	public RecommendationService(WMProRepository buyLogRepository, ProductRepository productRepository) {
+	public RecommendationService(BuyLogRepository buyLogRepository, ProductRepository productRepository) {
 		this.buyLogRepository = buyLogRepository;
 		this.productRepository = productRepository;
 	}

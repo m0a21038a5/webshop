@@ -19,6 +19,7 @@ import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.CartService;
+import com.example.service.CouponService;
 import com.example.service.ProductService;
 import com.example.service.RecommendationService;
 import com.example.service.UserService;
@@ -33,14 +34,17 @@ public class CartController {
 	private final ProductService productService;
 	private final UserService userService;
 	private final CartSessionManager cartSessionManager;
+	private final CouponService couponService;
 
 	public CartController(CartService cartService, RecommendationService recommendationService,
-			ProductService productService, UserService userService, CartSessionManager cartSessionManagers) {
+			ProductService productService, UserService userService, CartSessionManager cartSessionManagers,
+			CouponService couponService) {
 		this.cartService = cartService;
 		this.recommendationService = recommendationService;
 		this.productService = productService;
 		this.userService = userService;
 		this.cartSessionManager = cartSessionManagers;
+		this.couponService = couponService;
 	}
 
 	@GetMapping("/cart")
@@ -82,7 +86,7 @@ public class CartController {
 	public String coupon(Model model, HttpSession session,
 			@RequestParam(value = "couponcode", required = false) String couponcode) {
 
-		Coupon coupon = productService.findByCoupon(couponcode);
+		Coupon coupon = couponService.findByCoupon(couponcode);
 		CartSession cartSession = cartSessionManager.get(session);
 		cartSession.setCoupon(coupon);
 		cartSessionManager.save(session, cartSession);

@@ -10,26 +10,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.model.User;
 import com.example.service.MailService;
-import com.example.service.ProductService;
-import com.example.service.ReadingService;
 import com.example.service.UserService;
-import com.example.session.StockSessionManager;
 
 @Controller
 public class AdminController {
 
 	private final UserService userService;
-	private final ProductService productService;
-	private final StockSessionManager stockSessionManager;
-	private final ReadingService readingService;
 	private final MailService mailService;
 
-	public AdminController(UserService userService, ProductService productService,
-			StockSessionManager stockSessionManager, ReadingService readingService,MailService mailService) {
+	public AdminController(UserService userService, MailService mailService) {
 		this.userService = userService;
-		this.productService = productService;
-		this.stockSessionManager = stockSessionManager;
-		this.readingService = readingService;
 		this.mailService = mailService;
 	}
 

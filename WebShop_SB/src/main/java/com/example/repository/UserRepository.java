@@ -2,14 +2,11 @@ package com.example.repository;
 
 import java.util.List;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
-import com.example.model.BuyLog;
-import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.MailService;
 
@@ -64,46 +61,28 @@ public class UserRepository {
 		}
 	}
 
-	//購入履歴登録
-	public void insertLog(String username, Product product) {
-		String sql = "INSERT INTO buylog (username, productid, price, quantity) VALUES (?, ?, ?, ?)";
-		try {
-			jdbcTemplate.update(sql, username, product.getId(), product.getPrice(), product.getQuantity());
-		} catch (DataAccessException e) {
-			// エラーをログに記録
-			System.err.println("Error inserting log: " + e.getMessage());
-		}
-	}
-
-	//ユーザーごとの購入履歴取得
-	public List<BuyLog> findByLog(String username) {
-		String sql = "SELECT * FROM buylog WHERE username = ?";
-		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(BuyLog.class), username);
-	}
-
 	//ポイント 
 	public void pointUpdate(User user) {
 		String sql = "UPDATE users SET point = ? WHERE id = ?";
 		jdbcTemplate.update(sql, user.getPoint(), user.getId());
 	}
-	
+
 	//ユーザー全取得
 	public List<User> findAllUser() {
 		String query = "select * from users";
 		return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(User.class));
 	}
-	
+
 	//ユーザーロール変更
 	public void updateRole(User user) {
 		String update = "update users set role = ? where username = ?";
 		jdbcTemplate.update(update, user.getRole(), user.getUsername());
 	}
-	
+
 	//ユーザー情報更新
 	public void updateAll(User user) {
 		String query = "UPDATE users SET mailaddress = ?, address = ?, age = ? WHERE username = ?";
 		jdbcTemplate.update(query, user.getMailaddress(), user.getAddress(), user.getAge(), user.getUsername());
 	}
 
-	
 }

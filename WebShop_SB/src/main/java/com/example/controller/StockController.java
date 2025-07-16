@@ -18,6 +18,8 @@ import com.example.model.Product;
 import com.example.model.Readings;
 import com.example.service.ProductService;
 import com.example.service.ReadingService;
+import com.example.service.SearchLogService;
+import com.example.service.SearchService;
 import com.example.service.StockService;
 import com.example.session.StockSession;
 import com.example.session.StockSessionManager;
@@ -28,13 +30,18 @@ public class StockController {
 	private final StockService stockService;
 	private final StockSessionManager stockSessionManager;
 	private final ReadingService readingService;
+	private final SearchLogService searchLogService;
+	private final SearchService searchService;
 
 	public StockController(StockService stockService, ProductService productService,
-			StockSessionManager stockSessionManager, ReadingService readingService) {
+			StockSessionManager stockSessionManager, ReadingService readingService, SearchLogService searchLogService,
+			SearchService searchService) {
 		this.productService = productService;
 		this.stockService = stockService;
 		this.stockSessionManager = stockSessionManager;
 		this.readingService = readingService;
+		this.searchLogService = searchLogService;
+		this.searchService = searchService;
 	}
 
 	// 在庫管理
@@ -62,9 +69,9 @@ public class StockController {
 		model.addAttribute("genrelist", stockService.findAllGenre());
 
 		//検索履歴
-		model.addAttribute("idList", productService.findSearchIdLog(userDetails.getUsername(), "stock"));
-		model.addAttribute("titleList", productService.findSearchTitleLog(userDetails.getUsername(), "stock"));
-		model.addAttribute("authorList", productService.findSearchAuthorLog(userDetails.getUsername(), "stock"));
+		model.addAttribute("idList", searchLogService.findSearchIdLog(userDetails.getUsername(), "stock"));
+		model.addAttribute("titleList", searchLogService.findSearchTitleLog(userDetails.getUsername(), "stock"));
+		model.addAttribute("authorList", searchLogService.findSearchAuthorLog(userDetails.getUsername(), "stock"));
 		return "Stock";
 	}
 
@@ -84,17 +91,8 @@ public class StockController {
 			@RequestParam("imgLink") String imgLink, @RequestParam("notice") String notice,
 			@RequestParam("sales") int sales, Model model, HttpSession session) {
 
-		Product product = productService.findById(id);
-		product.setTitle(title);
-		product.setAuthor(author);
-		product.setRelease_day(release_day);
-		product.setStock(stock);
-		product.setPrice(price);
-		product.setStock(stock);
-		product.setSales(sales);
-		product.setImgLink(imgLink);
-		product.setGenre(genre);
-		product.setNotice(notice);
+		Product product = stockService.setProduct(id, title, author, release_day, price, stock, sales, imgLink, genre,
+				notice);
 
 		//商品情報更新
 		stockService.updateProduct(product);
@@ -102,26 +100,7 @@ public class StockController {
 		//読み仮名追加
 		readingService.updateReading(id, title_hira, title_kana, title_romaji, author_hira, author_kana, author_romaji);
 
-		StockSession stockSession = stockSessionManager.getStockSession(session);
-		List<Product> list = stockSession.getStock();
-
-		for (Product p : list) {
-			if (p.getId() == id) {
-				p.setTitle(title);
-				p.setAuthor(author);
-				p.setRelease_day(release_day);
-				p.setStock(stock);
-				p.setPrice(price);
-				p.setStock(stock);
-				p.setSales(sales);
-				p.setImgLink(imgLink);
-				p.setGenre(genre);
-				p.setNotice(notice);
-				break;
-			}
-		}
-
-		stockSession.setStock(list);
+		stockSessionManager.updateProductList(session, product);
 
 		return "redirect:/Stock";
 	}
@@ -130,20 +109,7 @@ public class StockController {
 	@PostMapping("/addProductDefault")
 	public String addSyouhin(HttpSession session) {
 
-		Product product = new Product();
-		product.setTitle("タイトル");
-		product.setAuthor("著者");
-		product.setRelease_day("発売日");
-		product.setStock(0);
-		product.setQuantity(0);
-		product.setPrice(0);
-		product.setSales(0);
-		product.setImgLink("画像リンク");
-		product.setGenre("ジャンル");
-		product.setRecommand(false);
-		product.setNotice("説明");
-		product.setView(false);
-		stockService.insert(product);
+		stockService.setDefaultProduct();
 
 		StockSession stockSession = stockSessionManager.getStockSession(session);
 		stockSession.setStock(productService.findAll());
@@ -179,31 +145,7 @@ public class StockController {
 	public String Recommend(Model model, @RequestParam(value = "recommand", required = false) List<String> recommand,
 			@RequestParam("id") int id, HttpSession session) {
 
-		boolean flag = false;
-		if (recommand != null) {
-			flag = true;
-		}
-
-		if (flag && !stockService.CountRecommand()) {
-			flag = false;
-		}
-
-		Product product = productService.findById(id);
-		product.setRecommand(flag);
-
-		StockSession stockSession = stockSessionManager.getStockSession(session);
-
-		List<Product> list = stockSession.getStock();
-		stockService.updateProduct(product);
-
-		for (Product p : list) {
-			if (p.getId() == id) {
-				p.setRecommand(flag);
-				break;
-			}
-		}
-
-		stockSession.setStock(list);
+		stockService.setRecommand(session, recommand, id);
 
 		return "redirect:/Stock";
 	}
@@ -213,27 +155,7 @@ public class StockController {
 	public String View(Model model, @RequestParam(value = "view", required = false) List<String> view,
 			@RequestParam("id") int id, HttpSession session) {
 
-		boolean flag = false;
-		if (view != null) {
-			flag = true;
-		}
-
-		Product product = productService.findById(id);
-		product.setView(flag);
-
-		StockSession stockSession = stockSessionManager.getStockSession(session);
-
-		List<Product> list = stockSession.getStock();
-		stockService.updateProduct(product);
-
-		for (Product p : list) {
-			if (p.getId() == id) {
-				p.setView(flag);
-				break;
-			}
-		}
-
-		stockSession.setStock(list);
+		stockService.setView(session, view, id);
 
 		return "redirect:/Stock";
 	}
@@ -253,7 +175,7 @@ public class StockController {
 		int num = stockSessionManager.updateSearchConditions(stockSession, username, id, title, author, genre);
 
 		// 🔸 検索結果をセッションに保存
-		List<Product> result = productService.findSearchAll(num, title, author, genre);
+		List<Product> result = searchService.findSearchAll(num, title, author, genre);
 		if (result == null) {
 			result = productService.findAll();
 			stockSessionManager.clearSearchConditions(session);

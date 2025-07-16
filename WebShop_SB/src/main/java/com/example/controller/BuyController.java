@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.example.model.Coupon;
 import com.example.model.Product;
 import com.example.model.User;
+import com.example.service.BuyLogService;
+import com.example.service.CouponService;
 import com.example.service.MailService;
 import com.example.service.ProductService;
 import com.example.service.UserService;
@@ -26,13 +28,17 @@ public class BuyController {
 	private final UserService userService;
 	private final CartSessionManager cartSessionManager;
 	private final MailService mailService;
+	private final CouponService couponService;
+	private final BuyLogService buyLogService;
 
 	public BuyController(ProductService productService, UserService userService, CartSessionManager cartSessionManagers,
-			MailService mailService) {
+			MailService mailService,CouponService couponService,BuyLogService buyLogService) {
 		this.productService = productService;
 		this.userService = userService;
 		this.cartSessionManager = cartSessionManagers;
 		this.mailService = mailService;
+		this.couponService = couponService;
+		this.buyLogService = buyLogService;
 	}
 
 	//購入ページ
@@ -56,7 +62,7 @@ public class BuyController {
 			String username = userDetails.getUsername();
 			mailService.setCartMessage(userService.findByUsername(username).getMailaddress(), "購入完了メール", cartSession);
 			for (Product p : cart) {
-				userService.insertLog(username, p);
+				buyLogService.insertLog(username, p);
 			}
 
 			int sum = cartSession.getSum();
@@ -72,7 +78,7 @@ public class BuyController {
 			//クーポンを使用済みに更新
 			if (cartSession.getCoupon() != null) {
 				Coupon coupon = cartSession.getCoupon();
-				productService.couponUpdate(coupon.getName());
+				couponService.couponUpdate(coupon.getName());
 			}
 
 			userService.point(user);

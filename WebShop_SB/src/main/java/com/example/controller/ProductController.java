@@ -16,6 +16,9 @@ import com.example.model.Product;
 import com.example.model.SearchLog;
 import com.example.service.CommentService;
 import com.example.service.ProductService;
+import com.example.service.SearchLogService;
+import com.example.service.SearchService;
+import com.example.service.StockService;
 import com.example.service.ViewLogService;
 
 @Controller
@@ -23,12 +26,19 @@ public class ProductController {
 	private final ProductService productService;
 	private final CommentService commentService;
 	private final ViewLogService viewLogService;
+	private final SearchLogService searchLogService;
+	private final SearchService searchService;
+	private final StockService stockService;
 
 	public ProductController(ProductService productService, CommentService commentService,
-			ViewLogService viewLogService) {
+			ViewLogService viewLogService,SearchLogService searchLogService,SearchService searchService,
+			StockService stockService) {
 		this.productService = productService;
 		this.commentService = commentService;
 		this.viewLogService = viewLogService;
+		this.searchLogService = searchLogService;
+		this.searchService = searchService;
+		this.stockService = stockService;
 	}
 
 	//ホームページ
@@ -39,7 +49,7 @@ public class ProductController {
 
 		// 検索履歴の取得（ログインユーザーが取得できた場合のみ）
 		model.addAttribute("searchList", (username != null && !username.equals("anonymousUser"))
-				? productService.findSearchTitleLog(username, "products")
+				? searchLogService.findSearchTitleLog(username, "products")
 				: null);
 
 		//イチオシリスト
@@ -52,6 +62,7 @@ public class ProductController {
 		}
 		model.addAttribute("rank", rankedProducts);
 		model.addAttribute("loginUser", username);
+		model.addAttribute("allGenre", stockService.findAllGenre());
 		return "homepage";
 	}
 
@@ -59,14 +70,15 @@ public class ProductController {
 	@GetMapping("/products")
 	public String listProducts(Model model, HttpSession session,
 			@RequestParam(value = "rank", required = false) String sortrule,
-			@RequestParam(value = "search", required = false) String search) {
+			@RequestParam(value = "search", required = false) String search,
+			@RequestParam(value ="genre") String genre) {
 
 		// ログインユーザー名の取得
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		boolean isLoggedIn = username != null && !username.equals("anonymousUser");
 
 		// 商品リストの取得
-		List<Product> productList = productService.searchByKeyword(search);
+		List<Product> productList = searchService.searchByKeyword(search,genre);
 
 		// 履歴保存
 		if (isLoggedIn) {
@@ -74,7 +86,7 @@ public class ProductController {
 			searchLog.setUsername(username);
 			searchLog.setPlace("products");
 			searchLog.setTitle(search);
-			productService.saveSearchLog(searchLog);
+			searchLogService.saveSearchLog(searchLog);
 		}
 
 		// 並び替え
@@ -82,11 +94,13 @@ public class ProductController {
 
 		// モデルへの追加
 		model.addAttribute("products", productList);
+		model.addAttribute("allGenre", stockService.findAllGenre());
 		model.addAttribute("search", search);
+		model.addAttribute("searchGenre",genre);
 		model.addAttribute("rank", sortrule);
 		model.addAttribute("loginUser", username);
 		model.addAttribute("searchList", isLoggedIn
-				? productService.findSearchTitleLog(username, "products")
+				? searchLogService.findSearchTitleLog(username, "products")
 				: null);
 
 		return "products";

@@ -4,21 +4,26 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import com.example.model.Product;
 import com.example.model.SearchLog;
 import com.example.service.ProductService;
+import com.example.service.SearchLogService;
 
 @Component
 public class StockSessionManager {
 
 	private static final String STOCK_SESSION_KEY = "stockSession";
 	
-	@Autowired
-	private ProductService productService;
+	private final ProductService productService;
+	private final SearchLogService searchLogService;
+	
+	public StockSessionManager(ProductService productService,SearchLogService searchLogService) {
+		this.productService = productService;
+		this.searchLogService = searchLogService;
+	}
 
 	public StockSession getStockSession(HttpSession session) {
 		StockSession stockSession = (StockSession) session.getAttribute(STOCK_SESSION_KEY);
@@ -29,8 +34,26 @@ public class StockSessionManager {
 		return stockSession;
 	}
 
-	public void updateProductList(HttpSession session, List<Product> list) {
+	public void updateProductList(HttpSession session, Product product) {
 		StockSession stockSession = getStockSession(session);
+		List<Product> list = stockSession.getStock();
+		
+		for (Product p : list) {
+			if (p.getId() == product.getId()) {
+				p.setTitle(product.getTitle());
+				p.setAuthor(product.getAuthor());
+				p.setRelease_day(product.getRelease_day());
+				p.setStock(product.getStock());
+				p.setPrice(product.getPrice());
+				p.setStock(product.getStock());
+				p.setSales(product.getSales());
+				p.setImgLink(product.getImgLink());
+				p.setGenre(product.getGenre());
+				p.setNotice(product.getNotice());
+				break;
+			}
+		}
+		
 		stockSession.setStock(list);
 	}
 
@@ -99,6 +122,6 @@ public class StockSessionManager {
 			log.setTitle(title);
 		if (author != null)
 			log.setAuthor(author);
-		productService.saveSearchLog(log);
+		searchLogService.saveSearchLog(log);
 	}
 }
